@@ -15,6 +15,9 @@
  *     (static component call, no ToolStart/ToolOutput chain, no flow-state polling).
  *   - MCP servers (appmixer.mcpservers.*.MCPServer): tools are enumerated via
  *     mcpListTools and executed via mcpCallTool (see mcp.js).
+ *   - A ToolStart (appmixer.ai.agenttools.ToolStart): described by its own properties,
+ *     the chain behind it is run by the engine (so it may branch) and ends with a
+ *     ToolOutput. Called through its webhook URL, never with sendJson (executeToolStart).
  *
  * Parameter model (regular action components)
  * ───────────────────────────────────────────
@@ -38,6 +41,8 @@ const toolChain = require('./toolChain');
 const TOOL_PORT = 'tool';
 const TOOL_START_TYPE = 'appmixer.ai.agenttools.ToolStart';
 const MAX_TOOL_NAME_LENGTH = 64;
+const TOOL_START_OUTPUT_POLL_TIMEOUT = 2 * 60 * 1000;  // 120 seconds
+const TOOL_START_OUTPUT_POLL_INTERVAL = 300;  // 300ms
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -170,6 +175,11 @@ async function fetchAndCacheManifests(context) {
             manifests[componentId] = { _isMCP: true };
             continue;
         }
+        if (flowDescriptor[componentId].type === TOOL_START_TYPE) {
+            // Described by its own properties, no manifest needed.
+            manifests[componentId] = { _isToolStart: true };
+            continue;
+        }
         const otherType = flowDescriptor[componentId].type;
         try {
             manifests[componentId] = await fetchManifest(context, otherType);
@@ -197,7 +207,7 @@ async function buildDefsFromManifests(context, manifests) {
 
     for (const componentId of Object.keys(manifests)) {
         const manifest = manifests[componentId];
-        const { _isMCP: isMCP } = manifest || {};
+        const { _isMCP: isMCP, _isToolStart: isToolStart } = manifest || {};
 
         if (isMCP) {
             const mcpDefs = await buildMCPToolDefs(context, componentId);
@@ -211,10 +221,11 @@ async function buildDefsFromManifests(context, manifests) {
         const inPortName = findToolInPort(component, gatewayComponentId);
         if (!inPortName) continue;
 
-        if (component.type === TOOL_START_TYPE) {
-            throw new context.CancelError(`Component ${componentId} is a 'ToolStart' connected to the
-                '${TOOL_PORT}' port of the AI Agent. A 'ToolStart' chain belongs to the 'tools' port;
-                on the '${TOOL_PORT}' port connect the component that does the work directly.`);
+        if (isToolStart || component.type === TOOL_START_TYPE) {
+            // A ToolStart describes the tool itself and the engine runs whatever is behind it
+            // (it may branch), so there is no chain to walk here.
+            defs.push(buildToolStartDef(componentId, component));
+            continue;
         }
 
         // The tools are cached for the whole run of the flow, so a tool that cannot be loaded
@@ -308,6 +319,90 @@ async function collectComponentTools(context) {
  */
 async function getComponentToolDefs(context) {
     return (await context.stateGet('componentTools')) || [];
+}
+
+// ─── Tool definition builder (ToolStart) ──────────────────────────────────────
+
+/**
+ * A ToolStart on the "tool" port: the description and the parameters come from its
+ * properties (the same definition the 'tools' port builds), the logic behind it is run
+ * by the engine - branches, loops and waits included - and ends with a ToolOutput.
+ */
+function buildToolStartDef(componentId, componentDescriptor) {
+    const properties = componentDescriptor.config?.properties || {};
+    const parameters = { type: 'object', properties: {}, required: [] };
+    for (const parameter of properties.parameters?.ADD || []) {
+        if (!parameter || !parameter.name) continue;
+        parameters.properties[parameter.name] = {
+            type: parameter.type || 'string',
+            ...(parameter.description ? { description: parameter.description } : {})
+        };
+        parameters.required.push(parameter.name);
+    }
+    if (!parameters.required.length) delete parameters.required;
+
+    const rawLabel = componentDescriptor.label || 'tool';
+    return {
+        type: 'function',
+        function: {
+            name: buildToolName(componentId, rawLabel),
+            description: properties.description || rawLabel,
+            parameters,
+            _componentTool: true,
+            _isToolStart: true,
+            _componentId: componentId
+        }
+    };
+}
+
+/**
+ * Run a ToolStart tool: hand the call to that one ToolStart through its webhook URL and
+ * wait for its ToolOutput. `context.sendJson(…, 'tool')` would reach every component on
+ * the port (the engine enqueues one copy per link), so a plain tool next to it would run
+ * too; the webhook route delivers to a single component. The ToolOutput stores the output
+ * in the flow state under the tool call id.
+ */
+async function executeToolStart(context, toolDef, args, { correlationId } = {}) {
+    const { name: displayName, _componentId: componentId } = toolDef.function;
+    const toolCallId = `${componentId}:${correlationId || 'call'}:${Date.now()}`;
+    const query = new URLSearchParams({ enqueueOnly: 'true' });
+    if (correlationId) {
+        // Keeps the tool run under the agent's run in the logs; ToolStart keys its flow-state
+        // entry by this id and ToolOutput reads it from the inherited message correlation.
+        query.set('correlationId', correlationId);
+    }
+    await context.log({ step: 'tool-start-call', displayName, componentId, toolCallId, args });
+    try {
+        await context.callAppmixer({
+            endPoint: `/flows/${context.flowId}/components/${componentId}?${query}`,
+            method: 'POST',
+            body: {
+                toolCalls: [{ componentId, args: args || {}, id: toolCallId }],
+                prompt: context.messages?.in?.content?.prompt
+            }
+        });
+    } catch (err) {
+        await context.log({ step: 'tool-start-call-error', displayName, componentId, error: err.message });
+        return `Error calling tool ${displayName}: ${err.message}`;
+    }
+
+    const pollTimeout = Number(context.config?.TOOLS_OUTPUT_POLL_TIMEOUT) || TOOL_START_OUTPUT_POLL_TIMEOUT;
+    const pollInterval = Number(context.config?.TOOLS_OUTPUT_POLL_INTERVAL) || TOOL_START_OUTPUT_POLL_INTERVAL;
+    const pollStart = Date.now();
+    while (Date.now() - pollStart < pollTimeout) {
+        const result = await context.flow.stateGet(toolCallId);
+        if (result) {
+            await context.flow.stateUnset(toolCallId);
+            await context.log({ step: 'tool-start-result', displayName, toolCallId, output: result.output });
+            const output = result.output;
+            if (output === null || output === undefined) return '';
+            return typeof output === 'string' ? output : JSON.stringify(output, null, 2);
+        }
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+    await context.log({ step: 'tool-start-timeout', displayName, toolCallId, timeout: pollTimeout });
+    return `Error: Tool ${displayName} did not return an output within ${pollTimeout}ms. `
+        + 'Does its chain end with a Tool Output component?';
 }
 
 // ─── Tool definition builder (regular action components) ──────────────────────
@@ -413,10 +508,14 @@ function buildComponentToolDef(componentId, componentDescriptor, manifest, conne
  * @returns {Promise<string>} tool output, always a string.
  */
 async function executeComponentTool(context, toolDef, args, { correlationId } = {}) {
-    const { name: fullToolName, _isMCP, _componentId, _mcpToolName,
+    const { name: fullToolName, _isMCP, _isToolStart, _componentId, _mcpToolName,
         _componentType, _inPort, _userStaticValues, _aiFields, _variableFields, _chain,
         _properties } = toolDef.function;
     const displayName = _isMCP ? _mcpToolName : fullToolName;
+
+    if (_isToolStart) {
+        return executeToolStart(context, toolDef, args, { correlationId });
+    }
 
     if (_isMCP) {
         try {
