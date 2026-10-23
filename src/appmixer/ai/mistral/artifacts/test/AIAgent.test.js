@@ -27,7 +27,7 @@ const MOCK_VALUE_MANIFEST = {
 
 /**
  * A flow with the agent, a ToolStart "Weather" (parameter city) and a plain
- * MockValue "Secret code" on the agent's 'tool' port.
+ * MockValue "Secret code" on the agent's 'tools' port.
  */
 function flowDescriptor({ withToolStart = true, withPlain = true } = {}) {
 
@@ -36,7 +36,7 @@ function flowDescriptor({ withToolStart = true, withPlain = true } = {}) {
         flow[TOOL_START] = {
             type: 'appmixer.ai.agenttools.ToolStart',
             label: 'Weather',
-            source: { in: { [AGENT]: ['tool'] } },
+            source: { in: { [AGENT]: ['tools'] } },
             config: { properties: {
                 description: 'Returns the current weather for one city.',
                 parameters: { ADD: [{ name: 'city', type: 'string', description: 'Name of the city.' }] }
@@ -47,8 +47,8 @@ function flowDescriptor({ withToolStart = true, withPlain = true } = {}) {
         flow[MOCK_VALUE] = {
             type: MOCK_VALUE_TYPE,
             label: 'Secret code',
-            source: { in: { [AGENT]: ['tool'] } },
-            config: { transform: { in: { [AGENT]: { tool: {
+            source: { in: { [AGENT]: ['tools'] } },
+            config: { transform: { in: { [AGENT]: { tools: {
                 type: 'json2new', modifiers: { value: {} }, lambda: { value: 'MISTRAL-KIWI-7731' }
             } } } } }
         };
@@ -90,7 +90,7 @@ function createContext({ flow, flowState = {}, callAppmixer, httpRequest } = {})
     return context;
 }
 
-describe('ai.mistral AIAgent - tools on the tool port', () => {
+describe('ai.mistral AIAgent - tools on the tools port', () => {
 
     afterEach(() => sinon.restore());
 
@@ -100,7 +100,7 @@ describe('ai.mistral AIAgent - tools on the tool port', () => {
         const defs = await AIAgent.collectTools(context);
         const toolStart = defs.find((def) => def.function._isToolStart);
 
-        assert(toolStart, 'ToolStart on the tool port is a tool');
+        assert(toolStart, 'ToolStart on the tools port is a tool');
         assert.strictEqual(toolStart.function._componentId, TOOL_START);
         assert.strictEqual(toolStart.function.description, 'Returns the current weather for one city.');
         assert.deepStrictEqual(toolStart.function.parameters, {
@@ -134,7 +134,7 @@ describe('ai.mistral AIAgent - tools on the tool port', () => {
         }
     });
 
-    it('calls a ToolStart through its webhook route and never through sendJson', async () => {
+    it('calls a ToolStart next to a plain component through its webhook route, never through sendJson', async () => {
 
         const flowState = {};
         const callAppmixer = sinon.stub().callsFake(async ({ endPoint, body }) => {
@@ -235,5 +235,130 @@ describe('ai.mistral AIAgent - tools on the tool port', () => {
         assert.strictEqual(AIAgent.toText([{ type: 'thinking', thinking: 'hm' }, { type: 'text', text: 'Pong' }]), 'Pong');
         assert.strictEqual(AIAgent.toText('Pong'), 'Pong');
         assert.strictEqual(AIAgent.toText(null), '');
+    });
+
+    it('calls a ToolStart through the port when the port holds ToolStarts only, as flows always did', async () => {
+
+        const flowState = {};
+        const context = createContext({ flow: flowDescriptor({ withPlain: false }), flowState });
+        // What the ToolStart -> ... -> ToolOutput chain does on the instance.
+        context.sendJson = sinon.stub().callsFake(async ({ toolCalls }) => {
+            flowState[toolCalls[0].id] = { output: `Sunny in ${toolCalls[0].args.city}.` };
+        });
+        const defs = await AIAgent.collectTools(context);
+
+        const [result] = await componentTool.executeToolCalls(context, defs,
+            [{ id: 'c1', name: defs[0].function.name, args: { city: 'Prague' } }], { correlationId: 'corr-1' });
+
+        assert.deepStrictEqual(result, { id: 'c1', output: 'Sunny in Prague.' });
+        assert.strictEqual(context.sendJson.callCount, 1);
+        const [message, port] = context.sendJson.firstCall.args;
+        assert.strictEqual(port, 'tools');
+        assert.deepStrictEqual(message, {
+            toolCalls: [{ componentId: TOOL_START, args: { city: 'Prague' }, id: 'c1:corr-1' }],
+            prompt: 'What is the weather in Prague?'
+        });
+        assert(!context.callAppmixer.getCalls().some((call) => call.args[0].endPoint.startsWith('/flows/')),
+            'no webhook call');
+    });
+
+    it('runs calls of different tools at once and calls of the same ToolStart one after the other', async () => {
+
+        const flowState = {};
+        let running = 0;
+        let maxRunning = 0;
+        const runningToolStarts = new Set();
+        let toolStartOverlap = false;
+        const callAppmixer = sinon.stub().callsFake(async ({ endPoint, body }) => {
+            if (endPoint.startsWith('/components?selector=')) return [MOCK_VALUE_MANIFEST];
+            running += 1;
+            maxRunning = Math.max(maxRunning, running);
+            await new Promise((resolve) => setTimeout(resolve, 20));
+            running -= 1;
+            if (endPoint.startsWith('/flows/')) {
+                const [call] = body.toolCalls;
+                if (runningToolStarts.size) toolStartOverlap = true;
+                runningToolStarts.add(call.id);
+                // The chain finishes a moment later; the next call must wait for it.
+                setTimeout(() => {
+                    flowState[call.id] = { output: `Sunny in ${call.args.city}.` };
+                    runningToolStarts.delete(call.id);
+                }, 10);
+                return { message: 'Enqueued.' };
+            }
+            return { outvalue: body.messages.in.value };
+        });
+        const context = createContext({ flowState, callAppmixer });
+        const defs = await AIAgent.collectTools(context);
+        const weather = defs.find((def) => def.function._isToolStart).function.name;
+        const secret = defs.find((def) => !def.function._isToolStart).function.name;
+
+        const results = await componentTool.executeToolCalls(context, defs, [
+            { id: 'c1', name: weather, args: { city: 'Prague' } },
+            { id: 'c2', name: weather, args: { city: 'Brno' } },
+            { id: 'c3', name: secret, args: {} },
+            { id: 'c4', name: 'no_such_tool', args: {} }
+        ], { correlationId: 'corr-1' });
+
+        assert.deepStrictEqual(results.map((result) => result.id), ['c1', 'c2', 'c3', 'c4'], 'in the order of the calls');
+        assert.strictEqual(results[0].output, 'Sunny in Prague.');
+        assert.strictEqual(results[1].output, 'Sunny in Brno.');
+        assert(results[2].output.includes('MISTRAL-KIWI-7731'));
+        assert.strictEqual(results[3].output, 'Error: unknown tool no_such_tool.');
+        assert(maxRunning > 1, 'the plain tool runs while the ToolStart is called');
+        assert(!toolStartOverlap, 'two calls of one ToolStart never run at once');
+    });
+
+    it('fills a field mapped to the Prompt variable of the tools port with the prompt', async () => {
+
+        const flow = flowDescriptor({ withToolStart: false });
+        flow[MOCK_VALUE].config.transform.in[AGENT].tools = {
+            type: 'json2new',
+            modifiers: { value: { 'p-1': { variable: `$.${AGENT}.tools.prompt`, functions: [] } } },
+            lambda: { value: '{{{p-1}}}' }
+        };
+        const callAppmixer = sinon.stub().callsFake(async ({ endPoint, body }) => {
+            if (endPoint.startsWith('/components?selector=')) return [MOCK_VALUE_MANIFEST];
+            if (endPoint === '/modifiers/transform') {
+                // The engine resolves the variable from the data it is given.
+                return { result: body.data.$[AGENT].tools.prompt };
+            }
+            return { outvalue: body.messages.in.value };
+        });
+        const context = createContext({ flow, callAppmixer });
+        const defs = await AIAgent.collectTools(context);
+
+        const [result] = await componentTool.executeToolCalls(context, defs,
+            [{ id: 'c1', name: defs[0].function.name, args: {} }], { correlationId: 'corr-1' });
+
+        assert(result.output.includes('What is the weather in Prague?'), result.output);
+        assert.deepStrictEqual(defs[0].function._userStaticValues, {}, 'the variable is not sent as a literal');
+    });
+
+    it('removes a ToolOutput that came after its call had timed out', async () => {
+
+        const flowState = {};
+        const context = createContext({ flowState });
+        const defs = await AIAgent.collectTools(context);
+        const toolStart = defs.find((def) => def.function._isToolStart);
+
+        await componentTool.executeComponentTool(context, toolStart, { city: 'Brno' }, { correlationId: 'corr-1', callId: 'c1' });
+        assert.deepStrictEqual((await context.stateGet('lateToolOutputs')).map((call) => call.id), ['c1:corr-1']);
+
+        // The ToolOutput comes late; the next message of the agent removes it.
+        flowState['c1:corr-1'] = { output: 'Sunny in Brno.' };
+        await componentTool.removeLateToolOutputs(context);
+        assert.deepStrictEqual(flowState, {});
+        assert.deepStrictEqual(await context.stateGet('lateToolOutputs'), []);
+    });
+
+    it('refuses a plain tool that branches and points to Tool Start', async () => {
+
+        const flow = flowDescriptor({ withToolStart: false });
+        flow['dddddddd-0000-4000-8000-000000000004'] = { type: MOCK_VALUE_TYPE, source: { in: { [MOCK_VALUE]: ['out'] } } };
+        flow['eeeeeeee-0000-4000-8000-000000000005'] = { type: MOCK_VALUE_TYPE, source: { in: { [MOCK_VALUE]: ['out'] } } };
+        const context = createContext({ flow });
+
+        await assert.rejects(AIAgent.collectTools(context), /connect a 'Tool Start' to the\s+'tools' port/);
     });
 });
