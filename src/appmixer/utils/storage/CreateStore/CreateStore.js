@@ -8,7 +8,9 @@ module.exports = {
         stores = stores.filter(store => store.name === name);
 
         if (stores.length > 0) {
-            const storeId = stores[0].storeId;
+            // listStores() returns the raw documents, where storeId is an ObjectId - sent as is
+            // it leaves the component as a Buffer, not the 24-character id the store API takes.
+            const storeId = String(stores[0].storeId);
 
             if (clear) {
                 await context.store.clear(storeId);

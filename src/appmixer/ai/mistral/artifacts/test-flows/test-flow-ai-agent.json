@@ -1,0 +1,588 @@
+{
+    "name": "E2E Mistral - AI Agent",
+    "flow": {
+        "62c110a9-a6f9-445d-a455-e54d5b87fab9": {
+            "type": "appmixer.utils.controls.OnStart",
+            "version": "1.0.0",
+            "x": 64,
+            "y": 320,
+            "source": {}
+        },
+        "18e16874-6e57-4949-a978-ee7ed8006102": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "version": "1.0.0",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "62c110a9-a6f9-445d-a455-e54d5b87fab9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "62c110a9-a6f9-445d-a455-e54d5b87fab9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "Test Case",
+                                                "text": "AI Agent"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "a65276e9-38ae-48fe-9752-0ceb57580aa5": {
+            "type": "appmixer.ai.mistral.AIAgent",
+            "version": "1.0.0",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "18e16874-6e57-4949-a978-ee7ed8006102": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "stream": true
+                },
+                "transform": {
+                    "in": {
+                        "18e16874-6e57-4949-a978-ee7ed8006102": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "instructions": {},
+                                    "prompt": {},
+                                    "threadId": {}
+                                },
+                                "lambda": {
+                                    "model": "mistral-small-latest",
+                                    "instructions": "You are a test agent. Look the secret code up with the Secret code tool and call the Order lookup tool with the value 5512. Answer with the secret code, then the exact text the Order lookup tool returned, and nothing else.",
+                                    "prompt": "What is the secret code, and what is the state of order 5512?",
+                                    "threadId": "mistral-e2e-agent-tools"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "bef70d64-0777-4cec-8a74-f35c392112c6": {
+            "type": "appmixer.utils.controls.MockValue",
+            "version": "1.0.0",
+            "x": 480,
+            "y": 576,
+            "source": {
+                "in": {
+                    "a65276e9-38ae-48fe-9752-0ceb57580aa5": [
+                        "tool"
+                    ]
+                }
+            },
+            "label": "Secret code",
+            "config": {
+                "transform": {
+                    "in": {
+                        "a65276e9-38ae-48fe-9752-0ceb57580aa5": {
+                            "tool": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "value": {}
+                                },
+                                "lambda": {
+                                    "value": "MISTRAL-KIWI-7731"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "fc921427-d521-4605-8265-01bf43e218f3": {
+            "type": "appmixer.utils.controls.MockValue",
+            "version": "1.0.0",
+            "x": 480,
+            "y": 704,
+            "source": {
+                "in": {
+                    "a65276e9-38ae-48fe-9752-0ceb57580aa5": [
+                        "tool"
+                    ]
+                }
+            },
+            "label": "Order lookup",
+            "config": {
+                "transform": {
+                    "in": {
+                        "a65276e9-38ae-48fe-9752-0ceb57580aa5": {
+                            "tool": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "value": {
+                                        "1c22a90c-cc54-40a7-9857-6ef46581b04a": {
+                                            "variable": "$.a65276e9-38ae-48fe-9752-0ceb57580aa5.tool.modelDefinedParameter",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "value": "{{{1c22a90c-cc54-40a7-9857-6ef46581b04a}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "b1bd8ca9-02f8-41da-94d7-ed3b6f04a61c": {
+            "type": "appmixer.utils.controls.MockValue",
+            "version": "1.0.0",
+            "x": 688,
+            "y": 704,
+            "source": {
+                "in": {
+                    "fc921427-d521-4605-8265-01bf43e218f3": [
+                        "out"
+                    ]
+                }
+            },
+            "label": "Order state",
+            "config": {
+                "transform": {
+                    "in": {
+                        "fc921427-d521-4605-8265-01bf43e218f3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "value": {
+                                        "997fa596-7d6b-45f7-8b67-2f91e7f10979": {
+                                            "variable": "$.fc921427-d521-4605-8265-01bf43e218f3.out.outvalue",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "value": "ORDER-{{{997fa596-7d6b-45f7-8b67-2f91e7f10979}}}-SHIPPED"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "875f891d-903a-4a1c-ac4d-8f7fec0bf10c": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a65276e9-38ae-48fe-9752-0ceb57580aa5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a65276e9-38ae-48fe-9752-0ceb57580aa5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9e13d88b-283f-451f-9be4-c8f520511b6d": {
+                                            "variable": "$.a65276e9-38ae-48fe-9752-0ceb57580aa5.out.answer",
+                                            "functions": []
+                                        },
+                                        "54b992ca-5c27-4d91-b483-0f889120cead": {
+                                            "variable": "$.a65276e9-38ae-48fe-9752-0ceb57580aa5.out.usage.total_tokens",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9e13d88b-283f-451f-9be4-c8f520511b6d}}}",
+                                                "assertion": "regex",
+                                                "regex": "KIWI-7731"
+                                            },
+                                            {
+                                                "field": "{{{9e13d88b-283f-451f-9be4-c8f520511b6d}}}",
+                                                "assertion": "regex",
+                                                "regex": "ORDER-5512-SHIPPED"
+                                            },
+                                            {
+                                                "field": "{{{54b992ca-5c27-4d91-b483-0f889120cead}}}",
+                                                "assertion": "notEmpty",
+                                                "expected": ""
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "4ff1f410-6753-4265-ab87-bde2a5d85614": {
+            "type": "appmixer.ai.mistral.AIAgent",
+            "version": "1.0.0",
+            "x": 688,
+            "y": 448,
+            "source": {
+                "in": {
+                    "a65276e9-38ae-48fe-9752-0ceb57580aa5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "stream": false
+                },
+                "transform": {
+                    "in": {
+                        "a65276e9-38ae-48fe-9752-0ceb57580aa5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "instructions": {},
+                                    "prompt": {},
+                                    "threadId": {}
+                                },
+                                "lambda": {
+                                    "model": "mistral-small-latest",
+                                    "instructions": "You are a test agent. Look the weather up with the Weather tool for the city the user asks about and answer with exactly the text the tool returned, nothing else.",
+                                    "prompt": "What is the weather in Prague?",
+                                    "threadId": "mistral-e2e-agent-toolstart"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "69851745-4f4e-422d-a5c1-4d85eaa9a519": {
+            "type": "appmixer.ai.agenttools.ToolStart",
+            "version": "1.0.0",
+            "x": 688,
+            "y": 832,
+            "source": {
+                "in": {
+                    "4ff1f410-6753-4265-ab87-bde2a5d85614": [
+                        "tool"
+                    ]
+                }
+            },
+            "label": "Weather",
+            "config": {
+                "properties": {
+                    "description": "Returns the current weather for a city.",
+                    "parameters": {
+                        "ADD": [
+                            {
+                                "name": "city",
+                                "type": "string",
+                                "description": "Name of the city, e.g. Prague."
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "7c446e56-38e8-4bc5-9e65-90c1ef3d1f5c": {
+            "type": "appmixer.utils.controls.Condition",
+            "version": "1.0.0",
+            "x": 896,
+            "y": 832,
+            "source": {
+                "in": {
+                    "69851745-4f4e-422d-a5c1-4d85eaa9a519": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "69851745-4f4e-422d-a5c1-4d85eaa9a519": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "e885276c-61f9-4aa2-a3bb-1b908d51cdc6": {
+                                            "variable": "$.69851745-4f4e-422d-a5c1-4d85eaa9a519.out.args.city",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{e885276c-61f9-4aa2-a3bb-1b908d51cdc6}}}",
+                                                        "operator": "=",
+                                                        "value": "Prague"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "a88f2461-9a37-48c3-8195-8120d790cfa5": {
+            "type": "appmixer.utils.controls.MockValue",
+            "version": "1.0.0",
+            "x": 1104,
+            "y": 768,
+            "source": {
+                "in": {
+                    "7c446e56-38e8-4bc5-9e65-90c1ef3d1f5c": [
+                        "true"
+                    ]
+                }
+            },
+            "label": "Prague weather",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7c446e56-38e8-4bc5-9e65-90c1ef3d1f5c": {
+                            "true": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "value": {}
+                                },
+                                "lambda": {
+                                    "value": "Sunny, 24 degrees in Prague."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "689fd62c-c16c-41ae-a679-870f05c3939b": {
+            "type": "appmixer.utils.controls.MockValue",
+            "version": "1.0.0",
+            "x": 1104,
+            "y": 896,
+            "source": {
+                "in": {
+                    "7c446e56-38e8-4bc5-9e65-90c1ef3d1f5c": [
+                        "false"
+                    ]
+                }
+            },
+            "label": "Other weather",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7c446e56-38e8-4bc5-9e65-90c1ef3d1f5c": {
+                            "false": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "value": {}
+                                },
+                                "lambda": {
+                                    "value": "Rainy, 12 degrees."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "0ef1d62f-432a-42da-92cd-d87ce0d1dcf7": {
+            "type": "appmixer.ai.agenttools.ToolOutput",
+            "version": "1.0.0",
+            "x": 1312,
+            "y": 832,
+            "source": {
+                "in": {
+                    "a88f2461-9a37-48c3-8195-8120d790cfa5": [
+                        "out"
+                    ],
+                    "689fd62c-c16c-41ae-a679-870f05c3939b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a88f2461-9a37-48c3-8195-8120d790cfa5": {
+                            "out": {
+                                "type": "json2new",
+                                "lambda": {
+                                    "output": "{{{7b0bf7d7-656d-4490-aedc-ecc24bfc6620}}}"
+                                },
+                                "modifiers": {
+                                    "output": {
+                                        "7b0bf7d7-656d-4490-aedc-ecc24bfc6620": {
+                                            "variable": "$.a88f2461-9a37-48c3-8195-8120d790cfa5.out.outvalue",
+                                            "functions": []
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "689fd62c-c16c-41ae-a679-870f05c3939b": {
+                            "out": {
+                                "type": "json2new",
+                                "lambda": {
+                                    "output": "{{{2ff4d988-2cdc-4dd3-99ba-8b811ace151e}}}"
+                                },
+                                "modifiers": {
+                                    "output": {
+                                        "2ff4d988-2cdc-4dd3-99ba-8b811ace151e": {
+                                            "variable": "$.689fd62c-c16c-41ae-a679-870f05c3939b.out.outvalue",
+                                            "functions": []
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "97d495d3-36ee-4851-b17b-998ab7fb3ece": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "x": 896,
+            "y": 448,
+            "source": {
+                "in": {
+                    "4ff1f410-6753-4265-ab87-bde2a5d85614": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4ff1f410-6753-4265-ab87-bde2a5d85614": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c64442f5-0d86-4f01-a120-fb26f17c1363": {
+                                            "variable": "$.4ff1f410-6753-4265-ab87-bde2a5d85614.out.answer",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{c64442f5-0d86-4f01-a120-fb26f17c1363}}}",
+                                                "assertion": "regex",
+                                                "regex": "[Ss]unny"
+                                            },
+                                            {
+                                                "field": "{{{c64442f5-0d86-4f01-a120-fb26f17c1363}}}",
+                                                "assertion": "regex",
+                                                "regex": "Prague"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "df887dc1-8f5a-4616-ab58-9fec660c6757": {
+            "type": "appmixer.utils.test.AfterAll",
+            "version": "1.0.0",
+            "x": 1104,
+            "y": 448,
+            "source": {
+                "in": {
+                    "875f891d-903a-4a1c-ac4d-8f7fec0bf10c": [
+                        "out"
+                    ],
+                    "97d495d3-36ee-4851-b17b-998ab7fb3ece": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "07eaef54-8577-4781-a7cd-aaa3b1a0d3fb": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "version": "1.0.0",
+            "x": 1312,
+            "y": 448,
+            "source": {
+                "in": {
+                    "df887dc1-8f5a-4616-ab58-9fec660c6757": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "df887dc1-8f5a-4616-ab58-9fec660c6757": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "44d809f5-3e02-4211-8bee-6478d75b7dc8": {
+                                            "variable": "$.df887dc1-8f5a-4616-ab58-9fec660c6757.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Mistral - AI Agent",
+                                    "result": "{{{44d809f5-3e02-4211-8bee-6478d75b7dc8}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

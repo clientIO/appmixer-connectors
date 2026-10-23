@@ -88,11 +88,21 @@ module.exports = {
             await context.flow.stateSet(conversationId, { messages: updatedMessages });
         }
 
-        // Collapse the choices array to its first element so downstream fields
-        // such as choices.message.content resolve directly.
+        // The same flat shape as the other AI connectors' Send Prompt: the answer is
+        // a top-level field rather than an item of the API's `choices` array.
+        const choice = response?.choices?.[0] || {};
         const outputData = {
-            ...response,
-            choices: response.choices?.[0]
+            answer: assistantReply,
+            prompt,
+            id: response?.id,
+            model: response?.model,
+            created: response?.created,
+            finishReason: choice.finish_reason,
+            usage: {
+                prompt_tokens: response?.usage?.prompt_tokens,
+                completion_tokens: response?.usage?.completion_tokens,
+                total_tokens: response?.usage?.total_tokens
+            }
         };
 
         return context.sendJson(outputData, 'out');
