@@ -82,8 +82,7 @@ module.exports = {
                             }
                             break;
                         case 'regex':
-                            const regex = new RegExp(exp.regex);
-                            if (regex.test(exp.input)) {
+                            if (matchesRegex(context, exp.input, exp.regex)) {
                                 okCount++;
                             }
                             break;
@@ -195,13 +194,38 @@ function isDate(text) {
 
 function contains(sourceData, value) {
 
+    // A missing input (e.g. a null field from the upstream component) does not contain anything.
+    if (sourceData === undefined || sourceData === null) {
+        return false;
+    }
     if (typeof sourceData != 'string') {
         sourceData = JSON.stringify(sourceData);
     }
     if (typeof value != 'string') {
         value = JSON.stringify(value);
     }
+    // JSON.stringify() returns undefined for undefined, functions and symbols.
+    if (typeof sourceData != 'string' || typeof value != 'string') {
+        return false;
+    }
     return sourceData.toLowerCase().indexOf(value.toLowerCase()) > -1;
+}
+
+function matchesRegex(context, sourceData, pattern) {
+
+    // A missing input never matches (RegExp.test() would otherwise test the string 'undefined' / 'null').
+    if (sourceData === undefined || sourceData === null) {
+        return false;
+    }
+
+    let regex;
+    try {
+        regex = new RegExp(pattern);
+    } catch (err) {
+        // An invalid pattern fails the same way on every retry.
+        throw new context.CancelError(`Invalid regular expression: ${err.message}`);
+    }
+    return regex.test(sourceData);
 }
 
 function isInRange(sourceData, rangeMin, rangeMax, exclusiveMin, exclusiveMax) {

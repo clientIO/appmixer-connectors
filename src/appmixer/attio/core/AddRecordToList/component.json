@@ -1,0 +1,159 @@
+{
+    "name": "appmixer.attio.core.AddRecordToList",
+    "label": "Add Record To List",
+    "description": "Add a record to a list. If the record is already in the list, its existing entry is updated instead of creating a duplicate.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:attio"
+    },
+    "quota": {
+        "manager": "appmixer:attio",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "listId": {
+                        "type": "string"
+                    },
+                    "objectId": {
+                        "type": "string"
+                    },
+                    "recordId": {
+                        "type": "string"
+                    },
+                    "entryValues": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "listId",
+                    "objectId",
+                    "recordId"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "listId": {
+                        "type": "text",
+                        "label": "List",
+                        "index": 1,
+                        "tooltip": "Pick a list or type its API slug or ID.",
+                        "source": {
+                            "url": "/component/appmixer/attio/core/ListLists?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/outputType": "array"
+                                },
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListLists#toSelectArray"
+                            }
+                        }
+                    },
+                    "objectId": {
+                        "type": "text",
+                        "label": "Record Object",
+                        "index": 2,
+                        "tooltip": "The object of the record, for example <code>companies</code>. It must be the parent object of the list.",
+                        "source": {
+                            "url": "/component/appmixer/attio/core/ListObjects?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/outputType": "array"
+                                },
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListObjects#toSelectArray"
+                            }
+                        }
+                    },
+                    "recordId": {
+                        "type": "text",
+                        "label": "Record ID",
+                        "index": 3,
+                        "tooltip": "The ID of the record. Use Find Records, Search Records or a Create component to get it."
+                    },
+                    "entryValues": {
+                        "type": "textarea",
+                        "label": "Entry Values",
+                        "index": 4,
+                        "tooltip": "Optional. JSON object mapping list attribute API slugs to values, for example <code>{\"stage\": \"In Progress\"}</code>."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Entry ID",
+                        "example": "2e6e29ea-c4e0-4f44-842d-78a891f8c156"
+                    },
+                    "listId": {
+                        "type": "string",
+                        "title": "List ID",
+                        "example": "33ebdbe9-e529-47c9-b894-0ba25e9c15c0"
+                    },
+                    "workspaceId": {
+                        "type": "string",
+                        "title": "Workspace ID",
+                        "example": "14beef7a-99f7-4534-a87e-70b564330a4c"
+                    },
+                    "parentRecordId": {
+                        "type": "string",
+                        "title": "Parent Record ID",
+                        "example": "bf071e1f-6035-429d-b874-d83ea64ea13b"
+                    },
+                    "parentObject": {
+                        "type": "string",
+                        "title": "Parent Object",
+                        "example": "companies"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "example": "2026-10-20T08:00:00.000000000Z"
+                    },
+                    "entryValues": {
+                        "type": "object",
+                        "title": "Entry Values",
+                        "example": {
+                            "stage": "In Progress"
+                        }
+                    },
+                    "rawEntryValues": {
+                        "type": "object",
+                        "title": "Raw Entry Values",
+                        "example": {
+                            "stage": [
+                                {
+                                    "active_until": null,
+                                    "status": {
+                                        "title": "In Progress"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iLTEuNSAtMyAzNCAzMiI+PHBhdGggZD0iTTMwLjY0NjggMTcuNzgyM0wyOC4wNTk5IDEzLjY0MjJDMjguMDU5OSAxMy42NDIyIDI4LjA1MDMgMTMuNjI0OCAyOC4wNDQ1IDEzLjYxNzJMMjcuODQwNSAxMy4yOTE5QzI3LjQ1NTUgMTIuNjc0IDI2Ljc4OTUgMTIuMzA0NSAyNi4wNjIgMTIuMzAyNUwyMS44OTQ5IDEyLjI4OTFMMjEuNjA0MiAxMi43NTQ5TDE2LjYyNDkgMjAuNzIzNEwxNi4zNDk2IDIxLjE2NDJMMTguNDM2MSAyNC40OTc4QzE4LjgyMSAyNS4xMTc2IDE5LjQ4NyAyNS40ODcyIDIwLjIyMDMgMjUuNDg3MkgyNi4wNkMyNi43Nzk5IDI1LjQ4NzIgMjcuNDYxMyAyNS4xMDggMjcuODQyNCAyNC40OTk4TDI4LjA0ODMgMjQuMTcwNkMyOC4wNDgzIDI0LjE3MDYgMjguMDU2IDI0LjE2MSAyOC4wNTggMjQuMTU3MkwzMC42NDg3IDIwLjAxMTJDMzEuMDc0MSAxOS4zMzM3IDMxLjA3NDEgMTguNDU3OSAzMC42NDg3IDE3Ljc4MjNIMzAuNjQ2OFpNMjkuODU3NiAxOS41MTY2TDI3LjI2NjkgMjMuNjYyNUMyNy4yNTUzIDIzLjY4MTcgMjcuMjQxOSAyMy42OTcxIDI3LjIzMDMgMjMuNzEyNUMyNy4xMzk4IDIzLjgxNDYgMjcuMDIyNCAyMy44MjggMjYuOTcwNSAyMy44MjhDMjYuOTEwOCAyMy44MjggMjYuNzY0NSAyMy44MTA3IDI2LjY3MDIgMjMuNjYwNkwyNC4wNzk1IDE5LjUxNDZDMjQuMDUwNiAxOS40Njg0IDI0LjAyNTYgMTkuNDIwMyAyNC4wMDI1IDE5LjM2ODNDMjMuOTc5NCAxOS4zMTgzIDIzLjk2MjEgMTkuMjY4MyAyMy45NDY3IDE5LjIxNjNDMjMuODg4OSAxOS4wMDg0IDIzLjg4ODkgMTguNzg1MSAyMy45NDY3IDE4LjU3NzNDMjMuOTc1NSAxOC40NzUzIDI0LjAxOTggMTguMzczMiAyNC4wNzc1IDE4LjI4MDlMMjYuNjY0NCAxNC4xMzg4QzI2LjY2NDQgMTQuMTM4OCAyNi42NjgzIDE0LjEzMyAyNi42NzAyIDE0LjEyOTFDMjYuNzMxOCAxNC4wMzY3IDI2LjgwODggMTMuOTk0NCAyNi44NzYyIDEzLjk4MDlDMjYuOTAzMSAxMy45NzMyIDI2LjkyNjIgMTMuOTcxMyAyNi45NDU0IDEzLjk2NzVDMjYuOTU1MSAxMy45Njc1IDI2Ljk2NDcgMTMuOTY3NSAyNi45NzQzIDEzLjk2NzVDMjcuMDM0IDEzLjk2NzUgMjcuMTgyMiAxMy45ODY3IDI3LjI3NDYgMTQuMTM2OEwyOS44NjE1IDE4LjI3N0MzMC4wOTgyIDE4LjY1NDMgMzAuMDk4MiAxOS4xMzkzIDI5Ljg2MTUgMTkuNTE2NkgyOS44NTc2WiIgZmlsbD0iIzAwMDAwMCIvPjxwYXRoIGQ9Ik0yMi45OTEzIDcuNzY0NEMyMy40MTQ4IDcuMDg0OTYgMjMuNDE0OCA2LjIxMTEyIDIyLjk5MTMgNS41MzU1M0wyMC40MDQ0IDEuMzk1MzZMMjAuMTg4OSAxLjA0Njk3QzE5LjgwMiAwLjQyOTEyNSAxOS4xMzYgMC4wNTk1NzAzIDE4LjQwNDYgMC4wNTk1NzAzSDEyLjU2NDlDMTEuODM1NCAwLjA1OTU3MDMgMTEuMTY5NCAwLjQyOTEyNSAxMC43ODA2IDEuMDQ4OUwwLjMyMzM2MSAxNy43ODQ3QzAuMTEzNTYxIDE4LjExOTYgMCAxOC41MDY1IDAgMTguODk5MkMwIDE5LjI5MTggMC4xMTE2MzYgMTkuNjc4NyAwLjMyMTQzNiAyMC4wMTE3TDMuMTI1ODIgMjQuNTAyMkMzLjUxMjcgMjUuMTIxOSA0LjE3ODY2IDI1LjQ4OTYgNC45MDgxNSAyNS40ODk2SDEwLjc0NzlDMTEuNDgxMiAyNS40ODk2IDEyLjE0NzIgMjUuMTIgMTIuNTMyMSAyNC41MDAyTDEyLjc0NTggMjQuMTYxNUMxMi43NDU4IDI0LjE2MTUgMTIuNzQ1OCAyNC4xNjE1IDEyLjc0NTggMjQuMTU3NkMxMi43NDU4IDI0LjE1NzYgMTIuNzQ5NiAyNC4xNTE5IDEyLjc0OTYgMjQuMTQ5OUwxNC44MzQyIDIwLjgxNjJMMjEuMDEyNyAxMC45Mjg3TDIyLjk4NzUgNy43NjYzM0wyMi45OTEzIDcuNzY0NFpNMjIuMzgxMiA2LjY0OTk2QzIyLjM4MTIgNi44NjM2MSAyMi4zMjE1IDcuMDc5MTkgMjIuMjAwMiA3LjI2OTc0TDExLjk1NjYgMjMuNjY0OUMxMS44NjQzIDIzLjgxMzEgMTEuNzE2IDIzLjgzMDQgMTEuNjU2NCAyMy44MzA0QzExLjU5NjcgMjMuODMwNCAxMS40NTA0IDIzLjgxMzEgMTEuMzU2MSAyMy42NjQ5TDguNzY3MyAxOS41MTdDOC41MzI0OCAxOS4xNDE3IDguNTMyNDggMTguNjU4NiA4Ljc2NzMgMTguMjc5NEwxOS4wMTA5IDEuODg4MUMxOS4xMDMzIDEuNzM3OTcgMTkuMjUxNSAxLjcyMDY0IDE5LjMxMTIgMS43MjA2NEMxOS4zNzA4IDEuNzIwNjQgMTkuNTE5IDEuNzM3OTcgMTkuNjEzNCAxLjg5MDAyTDIyLjIwMDIgNi4wMzAxOUMyMi4zMjE1IDYuMjIwNzQgMjIuMzgxMiA2LjQzNjMyIDIyLjM4MTIgNi42NDk5NlY2LjY0OTk2WiIgZmlsbD0iIzAwMDAwMCIvPjwvc3ZnPg=="
+}

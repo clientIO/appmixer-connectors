@@ -27,17 +27,19 @@
                     "link": { "type": "string", "format": "uri" },
                     "placeId": { "type": "string" },
                     "published": { "type": "boolean" },
-                    "scheduled_publish_time": { "type": "string", "format": "date-time" }
+                    "scheduled_publish_time": { "type": "string", "format": "date-time" },
+                    "images": { "type": "object" }
                 },
                 "anyOf": [
                     { "required": [ "pageId", "message" ] },
-                    { "required": [ "pageId", "link" ] }
+                    { "required": [ "pageId", "link" ] },
+                    { "required": [ "pageId", "images" ] }
                 ]
             },
             "inspector": {
                 "inputs": {
                     "pageId": {
-                        "type": "select",
+                        "type": "text",
                         "label": "Page",
                         "index": 1,
                         "source": {
@@ -52,13 +54,34 @@
                         "type": "text",
                         "label": "Message",
                         "index": 2,
-                        "tooltip": "The main body of the post. Either message or link must be supplied."
+                        "tooltip": "The main body of the post. With images it becomes the post text above the photos. Message, Link URL or Images must be supplied."
                     },
                     "link": {
                         "type": "text",
                         "label": "Link URL",
                         "index": 3,
-                        "tooltip": "The URL of a link to attach to the post. Either link or message must be supplied."
+                        "tooltip": "The URL of a link to attach to the post. Cannot be combined with Images. Message, Link URL or Images must be supplied."
+                    },
+                    "images": {
+                        "type": "expression",
+                        "label": "Images",
+                        "index": 4,
+                        "levels": ["ADD"],
+                        "tooltip": "Photos to attach to the post, up to 10. For each photo pick a file or enter a public image URL (JPEG, PNG, GIF, BMP or TIFF, max 4 MB). Cannot be combined with Link URL.",
+                        "fields": {
+                            "fileId": {
+                                "type": "filepicker",
+                                "label": "File",
+                                "index": 1,
+                                "tooltip": "The image file to upload."
+                            },
+                            "url": {
+                                "type": "text",
+                                "label": "Image URL",
+                                "index": 2,
+                                "tooltip": "A public URL of the image. Used when no file is picked."
+                            }
+                        }
                     },
                     "published": {
                         "type": "toggle",
@@ -84,6 +107,7 @@
                 { "label": "id", "value": "id", "schema": { "type": "string", "example": "107198938765432_122101234567890123" } },
                 { "label": "message", "value": "message", "schema": { "type": "string", "example": "Our summer sale starts today - 20% off all drinks!" } },
                 { "label": "link", "value": "link", "schema": { "type": "string", "example": "https://www.example.com/summer-sale" } },
+                { "label": "Photo IDs", "value": "photoIds", "schema": { "type": "array", "items": { "type": "string" }, "example": ["122133547148947081", "122133547148947082"] } },
                 { "label": "Page ID", "value": "pageId", "schema": { "type": "string", "example": "107198938765432" } },
                 { "label": "Page name", "value": "pageName", "schema": { "type": "string", "example": "Example Coffee Shop" } }
             ]

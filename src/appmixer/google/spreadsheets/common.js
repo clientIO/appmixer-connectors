@@ -89,4 +89,30 @@ function normalizeHeader(header) {
         .trim();
 }
 
-module.exports = { getHeader, loadFile, normalizeHeader };
+/**
+ * Convert a value to something a Google Sheets cell accepts. A cell holds only a
+ * string, number or boolean; the Sheets API rejects an object or array with
+ * 400 "Invalid values[...]". Objects and arrays are written as JSON strings,
+ * null/undefined as an empty cell. Strings, numbers and booleans (0, false) pass unchanged.
+ * @param {*} value
+ * @returns {string|number|boolean}
+ */
+function toCellValue(value) {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'object') return JSON.stringify(value);
+    return value;
+}
+
+/**
+ * True when a Google API error is a 400 (invalid request). Such a request fails
+ * the same way on every attempt, so it must not be retried.
+ * @param {Error} err
+ * @returns {boolean}
+ */
+function isBadRequestError(err) {
+    if (!err) return false;
+    const status = err.response?.status ?? err.status ?? err.code;
+    return Number(status) === 400;
+}
+
+module.exports = { getHeader, loadFile, normalizeHeader, toCellValue, isBadRequestError };

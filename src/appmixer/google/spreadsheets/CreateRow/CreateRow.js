@@ -1,6 +1,6 @@
 'use strict';
 const commons = require('../../google-commons');
-const { normalizeHeader } = require('../common');
+const { normalizeHeader, toCellValue, isBadRequestError } = require('../common');
 const google = require('googleapis');
 const Promise = require('bluebird');
 
@@ -36,10 +36,12 @@ module.exports = {
         Object.keys(values).forEach(key => {
             normalizedValues[normalizeHeader(key)] = values[key];
         });
-        // Map the incoming values to the columns in the sheet
+        // Map the incoming values to the columns in the sheet. A cell accepts only
+        // a string, number or boolean: objects and arrays are written as JSON strings.
         const orderedValues = headerValues.map(column => {
             const normalized = normalizeHeader(column);
-            return normalizedValues[normalized] !== undefined ? normalizedValues[normalized] : (values[column] || '');
+            const value = normalizedValues[normalized] !== undefined ? normalizedValues[normalized] : values[column];
+            return toCellValue(value);
         });
 
         const resource = {
@@ -47,14 +49,24 @@ module.exports = {
         };
 
         // Append the new row directly to the sheet using INSERT_ROWS
-        const response = await createRow({
-            auth: commons.getOauth2Client(context.auth),
-            spreadsheetId: sheetId,
-            range: `${worksheetName}!A:A`, // Start appending from column A
-            valueInputOption: 'RAW',
-            insertDataOption: 'INSERT_ROWS',
-            resource
-        });
+        let response;
+        try {
+            response = await createRow({
+                auth: commons.getOauth2Client(context.auth),
+                spreadsheetId: sheetId,
+                range: `${worksheetName}!A:A`, // Start appending from column A
+                valueInputOption: 'RAW',
+                insertDataOption: 'INSERT_ROWS',
+                resource
+            });
+        } catch (err) {
+            // A 400 from Google is a request that is invalid by design; a retry
+            // fails the same way, so fail once instead of retrying to the limit.
+            if (isBadRequestError(err)) {
+                throw new context.CancelError(`Google Sheets rejected the row: ${err.message}`);
+            }
+            throw err;
+        }
 
         if (response?.updates) {
             const updates = response.updates;
