@@ -1,0 +1,358 @@
+{
+    "name": "E2E Fathom - Find Meetings, Get Summary and Transcript",
+    "type": "automation",
+    "flow": {
+        "92bb56d9-39de-4a8a-80c7-2ee924361cd4": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 304,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3b1c092d-814c-4924-9674-e90f62161d3f": {
+            "type": "appmixer.fathom.core.FindMeetings",
+            "x": 256,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "92bb56d9-39de-4a8a-80c7-2ee924361cd4": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "92bb56d9-39de-4a8a-80c7-2ee924361cd4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "includeActionItems": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "includeActionItems": true,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "3f921c9e-0c36-4717-b7e3-de0d55faa553": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 448,
+            "y": 64,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3b1c092d-814c-4924-9674-e90f62161d3f": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3b1c092d-814c-4924-9674-e90f62161d3f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ae69e19a-4f2c-421e-a312-8443ac53d4f4": {
+                                            "variable": "$.3b1c092d-814c-4924-9674-e90f62161d3f.out.recording_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ae69e19a-4f2c-421e-a312-8443ac53d4f4}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "98480454-fff1-4756-a80c-8b9a19757ae8": {
+            "type": "appmixer.fathom.core.GetMeetingSummary",
+            "x": 448,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3b1c092d-814c-4924-9674-e90f62161d3f": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3b1c092d-814c-4924-9674-e90f62161d3f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recordingId": {
+                                        "831d5b25-326c-4a1a-98a5-0b74265cf808": {
+                                            "variable": "$.3b1c092d-814c-4924-9674-e90f62161d3f.out.recording_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recordingId": "{{{831d5b25-326c-4a1a-98a5-0b74265cf808}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "a6c03fc4-75ce-4770-840b-8576b3d27c96": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 640,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "98480454-fff1-4756-a80c-8b9a19757ae8": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "98480454-fff1-4756-a80c-8b9a19757ae8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "23f8f013-5434-48a9-976b-91949780d692": {
+                                            "variable": "$.98480454-fff1-4756-a80c-8b9a19757ae8.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.markdown_formatted"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{23f8f013-5434-48a9-976b-91949780d692}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "4ce89469-79f1-4437-97cf-a2a25c79ffb7": {
+            "type": "appmixer.fathom.core.GetMeetingTranscript",
+            "x": 640,
+            "y": 480,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "98480454-fff1-4756-a80c-8b9a19757ae8": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "98480454-fff1-4756-a80c-8b9a19757ae8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recordingId": {
+                                        "815d0e78-1170-4bd0-ad3a-8782c6781db6": {
+                                            "variable": "$.3b1c092d-814c-4924-9674-e90f62161d3f.out.recording_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recordingId": "{{{815d0e78-1170-4bd0-ad3a-8782c6781db6}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "0b15ed8f-9d03-468a-bc7e-a5e03a48fc17": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 832,
+            "y": 480,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4ce89469-79f1-4437-97cf-a2a25c79ffb7": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4ce89469-79f1-4437-97cf-a2a25c79ffb7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9c3d54ce-3b54-490f-8bff-54f98094f671": {
+                                            "variable": "$.4ce89469-79f1-4437-97cf-a2a25c79ffb7.out.transcript",
+                                            "functions": [
+                                                {
+                                                    "name": "g_length"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9c3d54ce-3b54-490f-8bff-54f98094f671}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "06e20e9b-b7aa-427e-a73b-0aad1ae66431": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1024,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3f921c9e-0c36-4717-b7e3-de0d55faa553": [
+                        "out"
+                    ],
+                    "a6c03fc4-75ce-4770-840b-8576b3d27c96": [
+                        "out"
+                    ],
+                    "0b15ed8f-9d03-468a-bc7e-a5e03a48fc17": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "77c9f6fb-0b09-4848-8103-57b881d5ffa6": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1216,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "06e20e9b-b7aa-427e-a73b-0aad1ae66431": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "06e20e9b-b7aa-427e-a73b-0aad1ae66431": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "4763269d-b731-4eba-acc9-52e66e477c25": {
+                                            "variable": "$.06e20e9b-b7aa-427e-a73b-0aad1ae66431.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Fathom - Find Meetings, Get Summary and Transcript",
+                                    "result": "{{{4763269d-b731-4eba-acc9-52e66e477c25}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

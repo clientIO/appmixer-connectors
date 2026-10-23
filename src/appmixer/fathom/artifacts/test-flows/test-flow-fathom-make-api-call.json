@@ -1,0 +1,178 @@
+{
+    "name": "E2E Fathom - Make API Call",
+    "type": "automation",
+    "flow": {
+        "327932f8-5025-4174-a365-bbe54e23df8b": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 192,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1623379a-45d4-4e33-bfd0-e1b0ab1a34b3": {
+            "type": "appmixer.fathom.core.MakeApiCall",
+            "x": 256,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "327932f8-5025-4174-a365-bbe54e23df8b": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "327932f8-5025-4174-a365-bbe54e23df8b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/meetings",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "5dff9629-bdf8-4d95-ae41-d7bbd9eb8b52": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 448,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "1623379a-45d4-4e33-bfd0-e1b0ab1a34b3": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1623379a-45d4-4e33-bfd0-e1b0ab1a34b3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "e3c53f7a-6f98-45d2-8b1e-9204be222586": {
+                                            "variable": "$.1623379a-45d4-4e33-bfd0-e1b0ab1a34b3.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.status"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{e3c53f7a-6f98-45d2-8b1e-9204be222586}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ef682da1-2906-4fa2-927d-15a74e6c4976": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 640,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "5dff9629-bdf8-4d95-ae41-d7bbd9eb8b52": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "cb81a3ce-597d-483b-a99c-27684da1faa3": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 832,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ef682da1-2906-4fa2-927d-15a74e6c4976": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "ef682da1-2906-4fa2-927d-15a74e6c4976": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "b9025208-e0b4-4d8b-b1ec-1d3665061b48": {
+                                            "variable": "$.ef682da1-2906-4fa2-927d-15a74e6c4976.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Fathom - Make API Call",
+                                    "result": "{{{b9025208-e0b4-4d8b-b1ec-1d3665061b48}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
