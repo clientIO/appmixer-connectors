@@ -23,7 +23,14 @@ describe('ai/claude SendPrompt', () => {
                 assert.strictEqual(opts.url, 'https://api.anthropic.com/v1/messages');
                 assert.strictEqual(opts.headers['x-api-key'], 'test-api-key');
                 // simulate API response shape expected by the code
-                return { data: { content: [{ text: 'Hi — I am Claude' }] } };
+                return {
+                    data: {
+                        model: 'claude-1-20250101',
+                        stop_reason: 'end_turn',
+                        content: [{ text: 'Hi — I am Claude' }],
+                        usage: { input_tokens: 12, output_tokens: 6, cache_read_input_tokens: 0 }
+                    }
+                };
             },
             sendJson: (payload, port) => {
                 sent.push({ payload, port });
@@ -35,7 +42,13 @@ describe('ai/claude SendPrompt', () => {
         await SendPrompt.receive(context);
 
         assert.strictEqual(sent.length, 1);
-        assert.deepStrictEqual(sent[0].payload, { answer: 'Hi — I am Claude', prompt: 'Hello there' });
+        assert.deepStrictEqual(sent[0].payload, {
+            answer: 'Hi — I am Claude',
+            prompt: 'Hello there',
+            usage: { input_tokens: 12, output_tokens: 6, cache_read_input_tokens: 0 },
+            stop_reason: 'end_turn',
+            model: 'claude-1-20250101'
+        });
         assert.strictEqual(sent[0].port, 'out');
     });
 

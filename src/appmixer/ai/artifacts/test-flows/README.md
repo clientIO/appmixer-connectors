@@ -6,7 +6,7 @@ though the `ai` connector is split into per-provider modules, because that is wh
 
 ## Scope
 
-Right now the **groq** and **typesafe** modules are covered:
+Right now the **groq**, **typesafe** and **claude** modules are covered:
 
 | Flow | Components |
 |------|------------|
@@ -15,9 +15,10 @@ Right now the **groq** and **typesafe** modules are covered:
 | `test-flow-audio.json` | `groq.CreateTranscription`, `groq.CreateTranslation` |
 | `test-flow-typesafe-decisions.json` | `typesafe.ClassifyText`, `typesafe.ScoreText`, `typesafe.VerifyStatement`, `typesafe.AskQuestions` |
 | `test-flow-typesafe-models-api-call.json` | `typesafe.ListModels` (`first`), `typesafe.MakeApiCall` (×2 — relative `GET /v1/models`, absolute `POST /v1/systemone` with a JSON body) |
+| `test-flow-claude-usage.json` | `claude.SendPrompt`, `claude.TransformTextToJSON`, `claude.AIAgent` (the `usage` / `stop_reason` / `model` output), `claude.MakeApiCall` (`GET /models`) |
 
 `appmixer e2e validate` therefore reports ~60 `component-coverage` warnings for the
-other modules (`openai`, `claude`, `gemini`, `bedrock`, `openrouter`, `requesty`,
+other modules (`openai`, `gemini`, `bedrock`, `openrouter`, `requesty`,
 `voyageai`, `agentcore`, `agenttools`). They are not regressions — those modules have
 never had E2E flows. Add them here as each module is brought onto the AI connector
 contract.
@@ -78,3 +79,11 @@ returns for the same role.
   `equal` asserts on the choice/result are stable. `ScoreText` only asserts the level is
   one of the two upper levels, because the model may split probability between them.
 - Nothing is created on TypeSafe's side, so the flows have no cleanup step.
+
+## Claude account requirements
+
+`test-flow-claude-usage.json` pins `claude-haiku-4-5-20251001` (set once in the
+`SetVariable` node). The asserts accept any `claude-haiku-4-5*` model in the response.
+Token counts are asserted as positive integers, `stop_reason` as `end_turn`
+(SendPrompt, AIAgent) and `tool_use` (TransformTextToJSON forces its extraction tool).
+The AIAgent runs with no tools connected, so it answers in a single turn.

@@ -1,0 +1,719 @@
+{
+    "name": "E2E AI Claude - usage, stop reason and model output",
+    "description": "End-to-end test for the Claude module of the AI connector — SendPrompt, TransformTextToJSON and AIAgent output `usage` (token counts), `stop_reason` and `model` next to their answer; MakeApiCall lists models.",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "887784be-e8f3-4266-9852-6940222df507": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4c7d3daf-36f3-4684-abf8-f1ec62468d5c": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "887784be-e8f3-4266-9852-6940222df507": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "887784be-e8f3-4266-9852-6940222df507": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "answerToken",
+                                                "text": "APPMIXER-E2E-CLAUDE"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "model",
+                                                "text": "claude-haiku-4-5-20251001"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8030bc5b-a43d-4661-bffe-635a90fbe928": {
+            "type": "appmixer.ai.claude.SendPrompt",
+            "x": 480,
+            "y": 16,
+            "version": "1.1.0",
+            "source": {
+                "in": {
+                    "4c7d3daf-36f3-4684-abf8-f1ec62468d5c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4c7d3daf-36f3-4684-abf8-f1ec62468d5c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "prompt": {
+                                        "d6458976-dcc1-4ef7-acd6-041eeb007b3b": {
+                                            "variable": "$.4c7d3daf-36f3-4684-abf8-f1ec62468d5c.out.answerToken",
+                                            "functions": []
+                                        }
+                                    },
+                                    "system": {},
+                                    "model": {
+                                        "cdd2dfb5-4df9-4dab-b0c7-de376192e84a": {
+                                            "variable": "$.4c7d3daf-36f3-4684-abf8-f1ec62468d5c.out.model",
+                                            "functions": []
+                                        }
+                                    },
+                                    "max_tokens": {}
+                                },
+                                "lambda": {
+                                    "prompt": "Reply with exactly this token and nothing else: {{{d6458976-dcc1-4ef7-acd6-041eeb007b3b}}}",
+                                    "system": "You are an automated end-to-end test fixture. Answer with the exact text requested, with no punctuation, quotes or explanation.",
+                                    "model": "{{{cdd2dfb5-4df9-4dab-b0c7-de376192e84a}}}",
+                                    "max_tokens": 200
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4b9c7fa3-12f0-4060-94fe-4049d552b408": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "8030bc5b-a43d-4661-bffe-635a90fbe928": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8030bc5b-a43d-4661-bffe-635a90fbe928": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "19273770-9662-4585-911d-39dc76aa2b7f": {
+                                            "variable": "$.8030bc5b-a43d-4661-bffe-635a90fbe928.out.answer",
+                                            "functions": []
+                                        },
+                                        "742ea34f-a24a-46b9-911c-a7a1b07b003f": {
+                                            "variable": "$.8030bc5b-a43d-4661-bffe-635a90fbe928.out.prompt",
+                                            "functions": []
+                                        },
+                                        "78e126ce-a80a-4a8f-808b-542379580cac": {
+                                            "variable": "$.8030bc5b-a43d-4661-bffe-635a90fbe928.out.usage.input_tokens",
+                                            "functions": []
+                                        },
+                                        "4665ce3c-cb24-4cec-b2a0-32bd735ea60f": {
+                                            "variable": "$.8030bc5b-a43d-4661-bffe-635a90fbe928.out.usage.output_tokens",
+                                            "functions": []
+                                        },
+                                        "593f5a30-955c-453a-977e-bed6bfb13cbb": {
+                                            "variable": "$.8030bc5b-a43d-4661-bffe-635a90fbe928.out.stop_reason",
+                                            "functions": []
+                                        },
+                                        "33431b3e-69c0-48b7-a065-3cb0a82bc913": {
+                                            "variable": "$.8030bc5b-a43d-4661-bffe-635a90fbe928.out.model",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{19273770-9662-4585-911d-39dc76aa2b7f}}}",
+                                                "assertion": "regex",
+                                                "regex": "APPMIXER-E2E-CLAUDE"
+                                            },
+                                            {
+                                                "field": "{{{742ea34f-a24a-46b9-911c-a7a1b07b003f}}}",
+                                                "assertion": "regex",
+                                                "regex": "APPMIXER-E2E-CLAUDE"
+                                            },
+                                            {
+                                                "field": "{{{78e126ce-a80a-4a8f-808b-542379580cac}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
+                                            },
+                                            {
+                                                "field": "{{{4665ce3c-cb24-4cec-b2a0-32bd735ea60f}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
+                                            },
+                                            {
+                                                "field": "{{{593f5a30-955c-453a-977e-bed6bfb13cbb}}}",
+                                                "assertion": "equal",
+                                                "expected": "end_turn"
+                                            },
+                                            {
+                                                "field": "{{{33431b3e-69c0-48b7-a065-3cb0a82bc913}}}",
+                                                "assertion": "regex",
+                                                "regex": "^claude-haiku-4-5"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b9f54a85-c0fb-41b9-80cc-05786deee12c": {
+            "type": "appmixer.ai.claude.TransformTextToJSON",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "8030bc5b-a43d-4661-bffe-635a90fbe928": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8030bc5b-a43d-4661-bffe-635a90fbe928": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "text": {},
+                                    "jsonSchema": {},
+                                    "model": {
+                                        "5ffba66f-6d94-4ff7-ab36-aa8e24829548": {
+                                            "variable": "$.4c7d3daf-36f3-4684-abf8-f1ec62468d5c.out.model",
+                                            "functions": []
+                                        }
+                                    },
+                                    "max_tokens": {}
+                                },
+                                "lambda": {
+                                    "text": "Our new customer John Doe is 42 years old and lives in Prague.",
+                                    "jsonSchema": "{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"number\"},\"city\":{\"type\":\"string\"}},\"required\":[\"name\",\"age\",\"city\"]}",
+                                    "model": "{{{5ffba66f-6d94-4ff7-ab36-aa8e24829548}}}",
+                                    "max_tokens": 1000
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "060a939a-b457-44fd-bc0d-0ad4212d5cb4": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b9f54a85-c0fb-41b9-80cc-05786deee12c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b9f54a85-c0fb-41b9-80cc-05786deee12c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "2a55ac6f-5918-45c5-9a6b-07540896bd01": {
+                                            "variable": "$.b9f54a85-c0fb-41b9-80cc-05786deee12c.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.json.name"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "f7e0dc56-5af3-4fe8-b9d7-6f1b61d09755": {
+                                            "variable": "$.b9f54a85-c0fb-41b9-80cc-05786deee12c.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.json.age"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "3eacc70a-89d6-46b9-8f4d-3401616c395d": {
+                                            "variable": "$.b9f54a85-c0fb-41b9-80cc-05786deee12c.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.usage.input_tokens"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "d0a26405-4724-40ae-8eb1-535898f646e7": {
+                                            "variable": "$.b9f54a85-c0fb-41b9-80cc-05786deee12c.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.usage.output_tokens"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "7ec3f780-ecea-4dc1-8b0c-d0d6cc55f699": {
+                                            "variable": "$.b9f54a85-c0fb-41b9-80cc-05786deee12c.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.stop_reason"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "aeb356b1-8b1e-4f83-899b-7703ade13538": {
+                                            "variable": "$.b9f54a85-c0fb-41b9-80cc-05786deee12c.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.model"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{2a55ac6f-5918-45c5-9a6b-07540896bd01}}}",
+                                                "assertion": "regex",
+                                                "regex": "John"
+                                            },
+                                            {
+                                                "field": "{{{f7e0dc56-5af3-4fe8-b9d7-6f1b61d09755}}}",
+                                                "assertion": "regex",
+                                                "regex": "^42$"
+                                            },
+                                            {
+                                                "field": "{{{3eacc70a-89d6-46b9-8f4d-3401616c395d}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
+                                            },
+                                            {
+                                                "field": "{{{d0a26405-4724-40ae-8eb1-535898f646e7}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
+                                            },
+                                            {
+                                                "field": "{{{7ec3f780-ecea-4dc1-8b0c-d0d6cc55f699}}}",
+                                                "assertion": "equal",
+                                                "expected": "tool_use"
+                                            },
+                                            {
+                                                "field": "{{{aeb356b1-8b1e-4f83-899b-7703ade13538}}}",
+                                                "assertion": "regex",
+                                                "regex": "^claude-haiku-4-5"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9a005978-97a6-487e-976d-3e48eee63ece": {
+            "type": "appmixer.ai.claude.AIAgent",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b9f54a85-c0fb-41b9-80cc-05786deee12c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b9f54a85-c0fb-41b9-80cc-05786deee12c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {
+                                        "a23892ba-e2f0-4114-85ee-040f75e32670": {
+                                            "variable": "$.4c7d3daf-36f3-4684-abf8-f1ec62468d5c.out.model",
+                                            "functions": []
+                                        }
+                                    },
+                                    "instructions": {},
+                                    "prompt": {
+                                        "54081d1f-7b34-493b-871f-276247260541": {
+                                            "variable": "$.4c7d3daf-36f3-4684-abf8-f1ec62468d5c.out.answerToken",
+                                            "functions": []
+                                        }
+                                    },
+                                    "threadId": {}
+                                },
+                                "lambda": {
+                                    "model": "{{{a23892ba-e2f0-4114-85ee-040f75e32670}}}",
+                                    "instructions": "You are an automated end-to-end test fixture. Answer with the exact text requested, with no punctuation, quotes or explanation.",
+                                    "prompt": "Reply with exactly this token and nothing else: {{{54081d1f-7b34-493b-871f-276247260541}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "674c2436-a9b1-4cf7-a3b3-b211aa1ce598": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9a005978-97a6-487e-976d-3e48eee63ece": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9a005978-97a6-487e-976d-3e48eee63ece": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b23fd0d6-d21b-4e29-9188-3e112675dcaf": {
+                                            "variable": "$.9a005978-97a6-487e-976d-3e48eee63ece.out.answer",
+                                            "functions": []
+                                        },
+                                        "5529e757-69a3-4641-9477-233a9007f01b": {
+                                            "variable": "$.9a005978-97a6-487e-976d-3e48eee63ece.out.prompt",
+                                            "functions": []
+                                        },
+                                        "6c82d5d3-187c-4ea2-a87f-b77e7ea07b4f": {
+                                            "variable": "$.9a005978-97a6-487e-976d-3e48eee63ece.out.usage.input_tokens",
+                                            "functions": []
+                                        },
+                                        "084858a9-4755-4523-9531-ae44ace4954f": {
+                                            "variable": "$.9a005978-97a6-487e-976d-3e48eee63ece.out.usage.output_tokens",
+                                            "functions": []
+                                        },
+                                        "67a3a0ab-36b7-4d8c-885e-50df48efa4ce": {
+                                            "variable": "$.9a005978-97a6-487e-976d-3e48eee63ece.out.stop_reason",
+                                            "functions": []
+                                        },
+                                        "04addbfa-ff74-4e30-89bb-bf8536a02a8b": {
+                                            "variable": "$.9a005978-97a6-487e-976d-3e48eee63ece.out.model",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{b23fd0d6-d21b-4e29-9188-3e112675dcaf}}}",
+                                                "assertion": "regex",
+                                                "regex": "APPMIXER-E2E-CLAUDE"
+                                            },
+                                            {
+                                                "field": "{{{5529e757-69a3-4641-9477-233a9007f01b}}}",
+                                                "assertion": "regex",
+                                                "regex": "APPMIXER-E2E-CLAUDE"
+                                            },
+                                            {
+                                                "field": "{{{6c82d5d3-187c-4ea2-a87f-b77e7ea07b4f}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
+                                            },
+                                            {
+                                                "field": "{{{084858a9-4755-4523-9531-ae44ace4954f}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
+                                            },
+                                            {
+                                                "field": "{{{67a3a0ab-36b7-4d8c-885e-50df48efa4ce}}}",
+                                                "assertion": "equal",
+                                                "expected": "end_turn"
+                                            },
+                                            {
+                                                "field": "{{{04addbfa-ff74-4e30-89bb-bf8536a02a8b}}}",
+                                                "assertion": "regex",
+                                                "regex": "^claude-haiku-4-5"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d73f3b9b-4665-44bb-a781-db19f2bde060": {
+            "type": "appmixer.ai.claude.MakeApiCall",
+            "x": 1104,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9a005978-97a6-487e-976d-3e48eee63ece": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9a005978-97a6-487e-976d-3e48eee63ece": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {},
+                                    "headers": {},
+                                    "parameters": {}
+                                },
+                                "lambda": {
+                                    "url": "/models",
+                                    "method": "GET",
+                                    "headers": "[{\"key\": \"Accept\", \"value\": \"application/json\"}]",
+                                    "parameters": "[{\"key\": \"limit\", \"value\": \"5\"}]"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8571ff47-2409-4589-8a51-d0df120285dd": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d73f3b9b-4665-44bb-a781-db19f2bde060": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d73f3b9b-4665-44bb-a781-db19f2bde060": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "4fe4939e-71e7-4685-a0c9-a02e088a0db9": {
+                                            "variable": "$.d73f3b9b-4665-44bb-a781-db19f2bde060.out.status",
+                                            "functions": []
+                                        },
+                                        "69c5f6dc-d81c-457a-8eb3-9cd59c77a071": {
+                                            "variable": "$.d73f3b9b-4665-44bb-a781-db19f2bde060.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.data[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{4fe4939e-71e7-4685-a0c9-a02e088a0db9}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            },
+                                            {
+                                                "field": "{{{69c5f6dc-d81c-457a-8eb3-9cd59c77a071}}}",
+                                                "assertion": "regex",
+                                                "regex": "^claude-"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6e30cab0-7d3e-4f97-9f2d-de42c56a8577": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1520,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4b9c7fa3-12f0-4060-94fe-4049d552b408": [
+                        "out"
+                    ],
+                    "060a939a-b457-44fd-bc0d-0ad4212d5cb4": [
+                        "out"
+                    ],
+                    "674c2436-a9b1-4cf7-a3b3-b211aa1ce598": [
+                        "out"
+                    ],
+                    "8571ff47-2409-4589-8a51-d0df120285dd": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a8b2ec44-397c-4ea5-b334-5bd1bbab70fb": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 400,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "6e30cab0-7d3e-4f97-9f2d-de42c56a8577": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "6e30cab0-7d3e-4f97-9f2d-de42c56a8577": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "e2aab9c6-1e1e-479a-833f-a47c137d4315": {
+                                            "variable": "$.6e30cab0-7d3e-4f97-9f2d-de42c56a8577.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E AI Claude - usage, stop reason and model output",
+                                    "result": "{{{e2aab9c6-1e1e-479a-833f-a47c137d4315}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

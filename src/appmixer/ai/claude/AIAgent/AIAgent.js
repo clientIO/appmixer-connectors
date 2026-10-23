@@ -41,6 +41,9 @@ module.exports = {
             await context.stateSet(`history:${threadId}`, messages);
         }
 
+        // Token usage summed over all Messages API calls made while answering this prompt.
+        let usage;
+
         while (true) {
             await context.log({ step: 'turn', messages });
 
@@ -70,6 +73,7 @@ module.exports = {
                 },
                 data: requestData
             });
+            usage = lib.addUsage(usage, data?.usage);
 
             // Check for tool calls in the response
             const toolUse = data?.content?.find(part => part.type === 'tool_use');
@@ -128,7 +132,13 @@ module.exports = {
                 if (threadId) {
                     await context.stateSet(`history:${threadId}`, messages);
                 }
-                return context.sendJson({ answer, prompt }, 'out');
+                return context.sendJson({
+                    answer,
+                    prompt,
+                    usage,
+                    stop_reason: data?.stop_reason,
+                    model: data?.model
+                }, 'out');
             }
         }
     }

@@ -3,6 +3,30 @@ const { Transform } = require('stream');
 module.exports = {
 
     /**
+     * Adds the numeric token counts of `usage` to `total` (used when a single component
+     * run makes multiple Messages API calls, e.g. the AI Agent tool loop).
+     * Non-numeric fields are taken from the latest response.
+     * @param {Object} total - Accumulated usage (or undefined).
+     * @param {Object} usage - Usage object from the latest API response.
+     * @returns {Object} Accumulated usage.
+     */
+    addUsage: function(total, usage) {
+
+        if (!usage) return total;
+        if (!total) return { ...usage };
+
+        const result = { ...total };
+        Object.keys(usage).forEach((key) => {
+            if (typeof usage[key] === 'number') {
+                result[key] = (typeof total[key] === 'number' ? total[key] : 0) + usage[key];
+            } else {
+                result[key] = usage[key];
+            }
+        });
+        return result;
+    },
+
+    /**
     * Splits a readable stream into chunks of n bytes.
     * @param {Readable} inputStream - The readable stream to split.
     * @param {number} chunkSize - Size of each chunk in bytes.
