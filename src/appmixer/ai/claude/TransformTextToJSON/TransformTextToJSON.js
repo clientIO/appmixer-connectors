@@ -1,6 +1,17 @@
 /* eslint-disable camelcase */
 'use strict';
 
+const USAGE_SCHEMA = {
+    type: 'object',
+    properties: {
+        input_tokens: { type: 'integer', title: 'Input Tokens', example: 412 },
+        output_tokens: { type: 'integer', title: 'Output Tokens', example: 87 },
+        cache_creation_input_tokens: { type: 'integer', title: 'Cache Creation Input Tokens', example: 0 },
+        cache_read_input_tokens: { type: 'integer', title: 'Cache Read Input Tokens', example: 0 }
+    },
+    example: { input_tokens: 412, output_tokens: 87, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 }
+};
+
 module.exports = {
 
     receive: async function(context) {
@@ -10,7 +21,7 @@ module.exports = {
             throw new context.CancelError('Text is required');
         }
 
-        if (!jsonSchema) {
+        if (!jsonSchemaString) {
             throw new context.CancelError('Output JSON Schema is required');
         }
 
@@ -39,9 +50,9 @@ module.exports = {
             baseURL: 'https://api.anthropic.com/v1/'
         };
 
-        const json = await this.transformTextToJSON(context, config, { prompt: text, jsonSchema, model, max_tokens });
+        const result = await this.transformTextToJSON(context, config, { prompt: text, jsonSchema, model, max_tokens });
 
-        return context.sendJson({ json }, 'out');
+        return context.sendJson(result, 'out');
     },
 
     getOutputPortOptions: function(context, jsonSchema) {
@@ -56,6 +67,21 @@ module.exports = {
                 value: 'text',
                 label: 'Text',
                 schema: { type: 'string' }
+            },
+            {
+                value: 'usage',
+                label: 'Usage',
+                schema: USAGE_SCHEMA
+            },
+            {
+                value: 'stop_reason',
+                label: 'Stop Reason',
+                schema: { type: 'string', example: 'tool_use' }
+            },
+            {
+                value: 'model',
+                label: 'Model',
+                schema: { type: 'string', example: 'claude-sonnet-4-5-20250929' }
             }
         ], 'out');
     },
@@ -64,7 +90,7 @@ module.exports = {
      * Calls Anthropic Claude API to transform text to JSON using tool schema.
      * @param {Object} config - { apiKey, baseURL }
      * @param {Object} input - { prompt, jsonSchema, model }
-     * @returns {Object} JSON object following the schema
+     * @returns {Object} { json, usage, stop_reason, model } where json follows the schema
      */
     transformTextToJSON: async function(context, config, input) {
 
@@ -97,10 +123,20 @@ module.exports = {
             }
         );
         // Find the tool_use output in the response
-        const toolUse = response.data.content.find(
+        const { content, usage, stop_reason, model: responseModel } = response.data;
+        const toolUse = (content || []).find(
             c => c.type === 'tool_use' && c.name === toolName
         );
-        if (!toolUse) throw new Error('Claude did not return tool_use output.');
-        return toolUse.input;
+        // When the response is cut off by max_tokens, the tool_use block can be missing or incomplete.
+        // Return what we have so the flow can detect it via stop_reason.
+        if (!toolUse && stop_reason !== 'max_tokens') {
+            throw new Error('Claude did not return tool_use output.');
+        }
+        return {
+            json: toolUse?.input || {},
+            usage,
+            stop_reason,
+            model: responseModel
+        };
     }
 };

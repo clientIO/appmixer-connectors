@@ -1,26 +1,64 @@
 /* eslint-disable camelcase */
 
 const lib = require('../lib.js');
+const componentTool = require('../tool');
 
-const COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT = 60 * 1000;  // 60 seconds
-const COLLECT_TOOL_OUTPUTS_POLL_INTERVAL = 1 * 1000;  // 1 second
-const DEFAULT_MAX_TOKENS = 1024;
+// Room for extended thinking: newer models spend part of max_tokens on thinking before they answer.
+const DEFAULT_MAX_TOKENS = 8192;
+// The Claude 3 models (not 3.5 / 3.7) answer at most 4096 tokens and refuse a higher max_tokens.
+const CLAUDE_3_MAX_TOKENS = 4096;
+const MAX_TURNS = 20; // Messages API calls for one prompt before the agent gives up.
+
+/**
+ * A tool definition of tool.js (function-calling shape, shared with the OpenAI agent) as an
+ * Anthropic tool. A component without model-defined fields has no `parameters`, while the
+ * Messages API requires an `input_schema` on every tool.
+ */
+function toAnthropicTool(def) {
+
+    const fn = componentTool.toPublicToolDef(def).function;
+    return {
+        name: fn.name,
+        description: fn.description,
+        input_schema: fn.parameters || { type: 'object', properties: {} }
+    };
+}
 
 module.exports = {
 
     start: async function(context) {
-        try {
-            const tools = lib.getConnectedToolStartComponents(context.componentId, context.flowDescriptor);
-            const functionDeclarations = lib.getFunctionDeclarations(tools);
+        await this.collectTools(context);
+    },
 
-            return context.stateSet('functionDeclarations', functionDeclarations);
+    /**
+     * Everything wired to the 'tools' port is a tool: a 'Tool Start' chain, an action component
+     * (the fields mapped to 'Model Defined Parameter' become its parameters) with the components
+     * behind it as further steps, or an MCP server. See tool.js.
+     */
+    collectTools: async function(context) {
+        try {
+            const toolDefs = await componentTool.collectComponentTools(context);
+            await context.stateSet('toolsCollected', true);
+            return toolDefs;
         } catch (error) {
-            throw new context.CancelError(error);
+            throw new context.CancelError(error.message || error);
         }
     },
 
+    getTools: async function(context) {
+        if (!await context.stateGet('toolsCollected')) {
+            // A message from OnStart can arrive before start() has stored the tools.
+            return this.collectTools(context);
+        }
+        return componentTool.getComponentToolDefs(context);
+    },
+
     receive: async function(context) {
-        const { prompt, model, instructions, max_tokens } = context.messages.in.content;
+        const { prompt, model, instructions } = context.messages.in.content;
+        // max_tokens: the name before the input was declared
+        const { maxTokens: maxTokensInput, max_tokens: legacyMaxTokens } = context.messages.in.content;
+        const maxTokens = Number(maxTokensInput || legacyMaxTokens)
+            || (/^claude-3-(haiku|opus|sonnet)/.test(model) ? CLAUDE_3_MAX_TOKENS : DEFAULT_MAX_TOKENS);
         if (!prompt) {
             throw new context.CancelError('Prompt is required');
         }
@@ -33,7 +71,10 @@ module.exports = {
         const threadId = context.messages.in.content.threadId;
         const correlationId = context.messages.in.correlationId;
 
-        const functionDeclarations = await context.stateGet('functionDeclarations');
+        const toolDefs = await this.getTools(context);
+        const tools = toolDefs.map(toAnthropicTool);
+        // A Tool Output that came after its call had timed out would stay in the flow state.
+        await componentTool.removeLateToolOutputs(context);
         let system = instructions || 'You are a helpful assistant. If you detect you cannot use any tool, always reply directly as if no tools were given to you.';
         let messages = threadId ? await context.stateGet(`history:${threadId}`) || [] : [];
         messages.push({ role: 'user', content: prompt });
@@ -41,24 +82,21 @@ module.exports = {
             await context.stateSet(`history:${threadId}`, messages);
         }
 
-        while (true) {
-            await context.log({ step: 'turn', messages });
+        // Token usage summed over all Messages API calls made while answering this prompt.
+        let usage;
 
-            // Prepare tool use for Anthropic if functionDeclarations exist
-            let toolsConfig = undefined;
-            if (functionDeclarations?.length) {
-                toolsConfig = functionDeclarations;
-            }
+        for (let turn = 1; ; turn++) {
+            await context.log({ step: 'turn', turn, messages });
 
             // Prepare the request to Anthropic
             const requestData = {
                 system,
                 messages,
-                max_tokens: max_tokens || DEFAULT_MAX_TOKENS,
+                max_tokens: maxTokens,
                 model
             };
-            if (toolsConfig) {
-                requestData.tools = toolsConfig;
+            if (tools.length) {
+                requestData.tools = tools;
             }
 
             const { data } = await context.httpRequest({
@@ -70,53 +108,26 @@ module.exports = {
                 },
                 data: requestData
             });
+            usage = lib.addUsage(usage, data?.usage);
 
-            // Check for tool calls in the response
-            const toolUse = data?.content?.find(part => part.type === 'tool_use');
-            if (toolUse?.id && toolUse.name) {
-                // Anthropic tool call format: { id, name, input }
-                const callId = `${toolUse.name}:${correlationId}`;
-                const calls = [{
-                    componentId: toolUse.name.split('_')[1],
-                    args: toolUse.input,
-                    id: callId,
-                    name: toolUse.name
-                }];
-                messages.push({ role: 'assistant', content: [{ type: 'tool_use', id: toolUse.id, name: toolUse.name, input: toolUse.input }] });
-                await context.log({ step: 'function-calls', message: 'AI requested 1 function', functionCalls: [toolUse] });
-                await context.sendJson({ toolCalls: calls, prompt }, 'tools');
-
-                // Collect tool outputs
-                await context.log({ step: 'collect-tools-output', threadId });
-                const outputs = [];
-                const pollStart = Date.now();
-                while (
-                    (outputs.length < calls.length) &&
-                    (Date.now() - pollStart < COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT)
-                ) {
-                    for (const call of calls) {
-                        const result = await context.flow.stateGet(call.id);
-                        if (result) {
-                            outputs.push({ name: call.name, output: result.output });
-                            await context.flow.stateUnset(call.id);
-                        }
-                    }
-                    await new Promise((resolve) => setTimeout(resolve, COLLECT_TOOL_OUTPUTS_POLL_INTERVAL));
+            // Every tool_use block of the turn needs its tool_result in the next user message,
+            // otherwise the Messages API rejects the request.
+            const toolUses = (data?.content || []).filter(part => part.type === 'tool_use' && part.id && part.name);
+            if (toolUses.length) {
+                if (turn >= MAX_TURNS) {
+                    throw new context.CancelError(`The agent still asked for tools after ${MAX_TURNS} turns.`);
                 }
-                await context.log({ step: 'collected-tools-output', threadId, outputs });
+                messages.push({ role: 'assistant', content: data.content });
+                await context.log({ step: 'function-calls', message: `AI requested ${toolUses.length} function(s)`, functionCalls: toolUses });
 
-                // Submit tool outputs to the assistant as a new message
-                if (outputs?.length) {
-                    await context.log({ step: 'tool-outputs', tools: calls, outputs });
-                    messages.push(
-                        ...outputs.map(({ name, output }) => ({
-                            role: 'user',
-                            content: [{ type: 'tool_result', tool_use_id: toolUse.id, content: output }]
-                        }))
-                    );
-                } else {
-                    await context.log({ step: 'no-tool-outputs', tools: calls });
-                }
+                // Different tools run at once, calls of one Tool Start one after the other. A failure
+                // or a timeout comes back as the output text for the model to deal with.
+                const outputs = await componentTool.executeToolCalls(context, toolDefs,
+                    toolUses.map((toolUse) => ({ id: toolUse.id, name: toolUse.name, args: toolUse.input })),
+                    { correlationId });
+                const results = outputs.map(({ id, output }) => ({ type: 'tool_result', tool_use_id: id, content: output }));
+                await context.log({ step: 'tool-outputs', results });
+                messages.push({ role: 'user', content: results });
             } else {
                 // Final answer, no more function calls.
                 let answer = '';
@@ -128,7 +139,13 @@ module.exports = {
                 if (threadId) {
                     await context.stateSet(`history:${threadId}`, messages);
                 }
-                return context.sendJson({ answer, prompt }, 'out');
+                return context.sendJson({
+                    answer,
+                    prompt,
+                    usage,
+                    stop_reason: data?.stop_reason,
+                    model: data?.model
+                }, 'out');
             }
         }
     }

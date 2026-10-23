@@ -34,6 +34,12 @@ module.exports = {
 
         let answer = data?.content[0].text ?? '';
 
-        return context.sendJson({ answer, prompt }, 'out');
+        return context.sendJson({
+            answer,
+            prompt,
+            usage: data?.usage,
+            stop_reason: data?.stop_reason,
+            model: data?.model
+        }, 'out');
     }
 };
