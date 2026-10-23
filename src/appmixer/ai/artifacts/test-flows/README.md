@@ -16,8 +16,8 @@ Right now the **groq**, **typesafe** and **claude** modules are covered:
 | `test-flow-typesafe-decisions.json` | `typesafe.ClassifyText`, `typesafe.ScoreText`, `typesafe.VerifyStatement`, `typesafe.AskQuestions` |
 | `test-flow-typesafe-models-api-call.json` | `typesafe.ListModels` (`first`), `typesafe.MakeApiCall` (×2 — relative `GET /v1/models`, absolute `POST /v1/systemone` with a JSON body) |
 | `test-flow-claude-usage.json` | `claude.SendPrompt`, `claude.TransformTextToJSON`, `claude.AIAgent` (the `usage` / `stop_reason` / `model` output), `claude.MakeApiCall` (`GET /models`) |
-| `test-flow-claude-agent-tool-port.json` | `claude.AIAgent` `tool` port: two Mock Value tools, one with a model defined value (the agent must call both, in order) |
-| `test-flow-claude-agent-tool-chain.json` | `claude.AIAgent` `tool` port with a chain of two components (the output of the last step is the tool output) |
+| `test-flow-claude-agent-tool-port.json` | `claude.AIAgent` `tools` port: two Mock Value tools, one with a model defined value (the agent must call both, in order) |
+| `test-flow-claude-agent-tool-chain.json` | `claude.AIAgent` `tools` port with a chain of two components (the output of the last step is the tool output) |
 
 `appmixer e2e validate` therefore reports ~60 `component-coverage` warnings for the
 other modules (`openai`, `gemini`, `bedrock`, `openrouter`, `requesty`,

@@ -9,7 +9,7 @@ const AIAgent = require('../../AIAgent/AIAgent');
 const AGENT_ID = 'agent-1';
 const TOOL_NAME = 'rows-1_Employee_contacts';
 
-/** A flow with one Google Sheets GetRows on the agent's 'tool' port, its filter filled by the model. */
+/** A flow with one Google Sheets GetRows on the agent's 'tools' port, its filter filled by the model. */
 function toolPortContext(prompt = 'Who is the CEO?') {
 
     const context = createMockContext({
@@ -22,16 +22,16 @@ function toolPortContext(prompt = 'Who is the CEO?') {
             'rows-1': {
                 type: 'appmixer.google.spreadsheets.GetRows',
                 label: 'Employee contacts',
-                source: { in: { [AGENT_ID]: ['tool'] } },
+                source: { in: { [AGENT_ID]: ['tools'] } },
                 config: {
                     transform: {
                         in: {
                             [AGENT_ID]: {
-                                tool: {
+                                tools: {
                                     modifiers: {
                                         sheetId: {},
                                         filter: {
-                                            'var-1': { variable: `$.${AGENT_ID}.tool.modelDefinedParameter`, functions: [] }
+                                            'var-1': { variable: `$.${AGENT_ID}.tools.modelDefinedParameter`, functions: [] }
                                         }
                                     },
                                     lambda: { sheetId: 'sheet-1', filter: '{{{var-1}}}' }
@@ -86,9 +86,9 @@ function anthropic(context, responses) {
 
 const usage = { input_tokens: 10, output_tokens: 5 };
 
-describe('ai/claude AIAgent - tool port', () => {
+describe('ai/claude AIAgent - components on the tools port', () => {
 
-    it('should send a component on the tool port as an Anthropic tool', async () => {
+    it('should send a component on the tools port as an Anthropic tool', async () => {
 
         const context = toolPortContext();
         const requests = anthropic(context, [
@@ -244,21 +244,48 @@ describe('ai/claude AIAgent - tool port', () => {
         await assert.rejects(AIAgent.start(context), /Employee contacts .* could not be loaded: 503/);
     });
 
-    it('should refuse a ToolStart connected to the tool port', async () => {
+    it('should call a ToolStart next to a component through its webhook route, not through the port', async () => {
 
         const context = toolPortContext();
-        context.flowDescriptor['rows-1'].type = 'appmixer.ai.agenttools.ToolStart';
+        context.flowDescriptor.ts1 = {
+            type: 'appmixer.ai.agenttools.ToolStart',
+            label: 'Weather',
+            source: { in: { [AGENT_ID]: ['tools'] } },
+            config: { properties: { description: 'Weather in a city', parameters: { ADD: [{ name: 'city', type: 'string' }] } } }
+        };
+        const requests = anthropic(context, [
+            { content: [{ type: 'tool_use', id: 'tu-1', name: 'ts1_Weather', input: { city: 'Prague' } }], stop_reason: 'tool_use', usage },
+            { content: [{ type: 'text', text: 'Sunny.' }], stop_reason: 'end_turn', usage }
+        ]);
+        const getRows = context.callAppmixer;
+        context.callAppmixer = sinon.stub().callsFake(async (options) => {
+            if (!options.endPoint.startsWith('/flows/')) return getRows(options);
+            // The ToolStart -> ... -> ToolOutput chain on the instance.
+            await context.flow.stateSet(options.body.toolCalls[0].id, { output: '22 °C, sunny' });
+            return { message: 'Enqueued.' };
+        });
 
-        await assert.rejects(AIAgent.start(context), /'ToolStart' chain belongs to the 'tools' port/);
+        await AIAgent.start(context);
+        await AIAgent.receive(context);
+
+        assert.deepStrictEqual(requests[0].tools.map(t => t.name).sort(), [TOOL_NAME, 'ts1_Weather']);
+        const trigger = context.callAppmixer.getCalls().find(c => c.args[0].endPoint.startsWith('/flows/')).args[0];
+        assert.strictEqual(trigger.endPoint, '/flows/flow-1/components/ts1?enqueueOnly=true&correlationId=corr-1');
+        assert.deepStrictEqual(trigger.body, {
+            toolCalls: [{ componentId: 'ts1', args: { city: 'Prague' }, id: 'tu-1:corr-1' }],
+            prompt: 'Who is the CEO?'
+        });
+        assert(!context.sendJson.getCalls().some(c => c.args[1] === 'tools'), 'the GetRows tool would run too');
+        assert.deepStrictEqual(requests[1].messages.at(-1).content, [{ type: 'tool_result', tool_use_id: 'tu-1', content: '22 °C, sunny' }]);
     });
 });
 
 describe('ai/claude AIAgent - tools port (ToolStart)', () => {
 
-    it('should hand the call to the ToolStart chain and send its ToolOutput back', async () => {
+    it('should hand the call to the ToolStart chain through the port and send its ToolOutput back', async () => {
 
         const context = toolPortContext();
-        // A ToolStart chain instead of the tool port
+        // ToolStarts only on the port: the flows built before components could be tools
         context.flowDescriptor = {
             [AGENT_ID]: { type: 'appmixer.ai.claude.AIAgent' },
             ts1: {
@@ -268,7 +295,7 @@ describe('ai/claude AIAgent - tools port (ToolStart)', () => {
             }
         };
         const requests = anthropic(context, [
-            { content: [{ type: 'tool_use', id: 'tu-1', name: 'function_ts1', input: { city: 'Prague' } }], stop_reason: 'tool_use', usage },
+            { content: [{ type: 'tool_use', id: 'tu-1', name: 'ts1_tool', input: { city: 'Prague' } }], stop_reason: 'tool_use', usage },
             { content: [{ type: 'text', text: 'Sunny.' }], stop_reason: 'end_turn', usage }
         ]);
         // ToolOutput writes the output under the call id the agent sent
@@ -280,12 +307,16 @@ describe('ai/claude AIAgent - tools port (ToolStart)', () => {
         await AIAgent.receive(context);
 
         assert.deepStrictEqual(requests[0].tools, [{
-            name: 'function_ts1',
+            name: 'ts1_tool',
             description: 'Weather in a city',
-            input_schema: { type: 'object', properties: { city: { type: 'string', description: 'City' } } }
+            input_schema: { type: 'object', properties: { city: { type: 'string', description: 'City' } }, required: ['city'] }
         }]);
         const toolsCall = context.sendJson.getCalls().find(c => c.args[1] === 'tools').args[0];
-        assert.deepStrictEqual(toolsCall.toolCalls[0], { componentId: 'ts1', args: { city: 'Prague' }, id: 'tu-1:corr-1', name: 'function_ts1' });
+        assert.deepStrictEqual(toolsCall, {
+            toolCalls: [{ componentId: 'ts1', args: { city: 'Prague' }, id: 'tu-1:corr-1' }],
+            prompt: 'Who is the CEO?'
+        });
+        assert(!context.callAppmixer.getCalls().some(c => c.args[0].endPoint.startsWith('/flows/')), 'no webhook call');
         assert.deepStrictEqual(requests[1].messages.at(-1).content, [{ type: 'tool_result', tool_use_id: 'tu-1', content: '22 °C, sunny' }]);
     });
 
@@ -301,7 +332,7 @@ describe('ai/claude AIAgent - tools port (ToolStart)', () => {
             }
         };
         const requests = anthropic(context, [
-            { content: [{ type: 'tool_use', id: 'tu-1', name: 'function_ts1', input: {} }], stop_reason: 'tool_use', usage },
+            { content: [{ type: 'tool_use', id: 'tu-1', name: 'ts1_tool', input: {} }], stop_reason: 'tool_use', usage },
             { content: [{ type: 'text', text: 'No weather.' }], stop_reason: 'end_turn', usage },
             { content: [{ type: 'text', text: 'Hi.' }], stop_reason: 'end_turn', usage }
         ]);
@@ -311,12 +342,12 @@ describe('ai/claude AIAgent - tools port (ToolStart)', () => {
         const clock = sinon.useFakeTimers({ toFake: ['setTimeout', 'Date'] });
         try {
             const run = AIAgent.receive(context);
-            await clock.tickAsync(61 * 1000);
+            await clock.tickAsync(121 * 1000);
             await run;
         } finally {
             clock.restore();
         }
-        assert.strictEqual(requests[1].messages.at(-1).content[0].is_error, true);
+        assert.match(requests[1].messages.at(-1).content[0].content, /did not return an output within 120000ms/);
 
         // The ToolOutput comes late, the next message of the agent removes it.
         await context.flow.stateSet('tu-1:corr-1', { output: '22 °C' });

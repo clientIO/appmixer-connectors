@@ -3,7 +3,7 @@
 /**
  * toolChain.js — a tool made of several components.
  *
- * The component wired to the "tool" port is the first step of a tool. Every component
+ * The component wired to the "tools" port is the first step of a tool. Every component
  * connected behind it is another step: Generate Embeddings -> Query Vectors is one
  * retrieval tool. There is no ToolStart in front and no ToolOutput at the end; the
  * output of the last step is what the model gets back.
@@ -14,6 +14,7 @@
  *
  *   - a literal value is passed as it is,
  *   - a field filled with "Model Defined Parameter" becomes a parameter of the tool,
+ *   - a field with the port's "Prompt" variable gets the prompt the agent is answering,
  *   - a field with flow variables (of an earlier step, or of anything in front of the
  *     agent) is resolved by the engine itself (POST /modifiers/transform), so variable
  *     modifiers behave exactly as they do in a running flow.
@@ -22,12 +23,12 @@
  * returns a list (Find Emails -> Get Email returns the content of every email found).
  *
  * Limits: the chain is a straight line, a flow that branches inside a tool does not
- * start. An output of a component in front of the agent that the engine moved out of
+ * start (a tool that branches starts with a ToolStart, see tool.js). An output of a component in front of the agent that the engine moved out of
  * the message (over 2 kB by default) cannot be read here; the tool call fails with an
  * error saying so.
  */
 
-const TOOL_PORT = 'tool';
+const TOOL_PORT = 'tools';
 const MODEL_PARAMETER = 'modelDefinedParameter';
 const TOOL_OUTPUT_TYPE = 'appmixer.ai.agenttools.ToolOutput';
 const VARIABLE = /\{\{\{[^{}]+\}\}\}/;
@@ -115,7 +116,7 @@ function readFields(transform) {
 }
 
 /**
- * Complete the definition built for the component on the "tool" port:
+ * Complete the definition built for the component on the "tools" port:
  *
  *   - `_variableFields`: its fields mapped to flow variables (tool.js itself only
  *     knows literals and model defined fields),
@@ -152,9 +153,9 @@ async function extendToolDef(context, toolDef, fetchManifest) {
         if (successors.length > 1) {
             // Running only a part of what the user connected would return a wrong output quietly.
             throw new context.CancelError(`The tool starting with component ${firstComponentId} branches behind
-                component ${previousId}. A tool connected to the '${TOOL_PORT}' port of the AI Agent has to be
-                a straight line of components. Use the 'tools' port with 'ToolStart' and 'ToolOutput'
-                for a tool that branches.`);
+                component ${previousId}. A component connected to the '${TOOL_PORT}' port of the AI Agent runs
+                as a straight line of components. For a tool that branches, connect a 'Tool Start' to the
+                '${TOOL_PORT}' port and end every branch with a 'Tool Output'.`);
         }
 
         const [next] = successors;
@@ -220,10 +221,15 @@ async function extendToolDef(context, toolDef, fetchManifest) {
 
 /**
  * Outputs of the components in front of the agent, keyed by component and port. They
- * travel in the scope of the agent's input message.
+ * travel in the scope of the agent's input message. The agent's own "tools" port adds
+ * the prompt it is answering, so that a field mapped to the port's "Prompt" variable
+ * gets it.
  */
 function getScope(context) {
-    return context.messages?.in?.scope || {};
+    return {
+        ...(context.messages?.in?.scope || {}),
+        [context.componentId]: { [TOOL_PORT]: { prompt: context.messages?.in?.content?.prompt } }
+    };
 }
 
 /**
@@ -408,6 +414,7 @@ async function run(context, toolDef, args, firstResult) {
 }
 
 module.exports = {
+    TOOL_PORT,
     extendToolDef,
     getScope,
     hasVariable,
