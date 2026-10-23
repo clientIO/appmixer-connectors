@@ -1,25 +1,25 @@
 {
+    "name": "E2E Shopify - Make API Call",
+    "description": "Call the GraphQL Admin API through Make API Call.",
     "flow": {
-        "845d404b-9cbe-4ad9-b12f-b75fa01a8479": {
+        "f57093a3-344c-46cb-9802-457159dc4541": {
             "type": "appmixer.utils.controls.OnStart",
             "x": 64,
-            "y": 320,
+            "y": 16,
             "source": {},
-            "version": "1.0.0",
             "config": {},
             "errorHandling": {
                 "autoRetry": false,
                 "onError": "stopFlow"
             }
         },
-        "72949c52-8dd3-47e2-850d-14c8f36e99e6": {
+        "da75ca52-29a9-4282-8569-c303d417aee2": {
             "type": "appmixer.shopify.core.MakeApiCall",
-            "x": 256,
-            "y": 320,
-            "version": "1.0.0",
+            "x": 272,
+            "y": 16,
             "source": {
                 "in": {
-                    "845d404b-9cbe-4ad9-b12f-b75fa01a8479": [
+                    "f57093a3-344c-46cb-9802-457159dc4541": [
                         "out"
                     ]
                 }
@@ -27,23 +27,22 @@
             "config": {
                 "transform": {
                     "in": {
-                        "845d404b-9cbe-4ad9-b12f-b75fa01a8479": {
+                        "f57093a3-344c-46cb-9802-457159dc4541": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "url": {},
-                                    "method": {}
+                                    "method": {},
+                                    "body": {}
                                 },
                                 "lambda": {
-                                    "url": "/shop.json",
-                                    "method": "GET"
+                                    "url": "/graphql.json",
+                                    "method": "POST",
+                                    "body": "{\"query\": \"query Shop { shop { id name myshopifyDomain } }\", \"variables\": {}}"
                                 }
                             }
                         }
                     }
-                },
-                "properties": {
-                    "account": "6a5dbb68b33bcbd1269431be"
                 }
             },
             "errorHandling": {
@@ -51,14 +50,13 @@
                 "onError": "stopFlow"
             }
         },
-        "cbe7512d-02dc-4ddc-a71e-25321e762d76": {
+        "b7ba5404-6064-4cae-acd7-1b15c59e5bf2": {
             "type": "appmixer.utils.test.Assert",
-            "x": 448,
-            "y": 320,
-            "version": "1.0.0",
+            "x": 480,
+            "y": 16,
             "source": {
                 "in": {
-                    "72949c52-8dd3-47e2-850d-14c8f36e99e6": [
+                    "da75ca52-29a9-4282-8569-c303d417aee2": [
                         "out"
                     ]
                 }
@@ -66,23 +64,36 @@
             "config": {
                 "transform": {
                     "in": {
-                        "72949c52-8dd3-47e2-850d-14c8f36e99e6": {
+                        "da75ca52-29a9-4282-8569-c303d417aee2": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "d3cfd9ce-ae99-4a6d-b354-bcb4e7fdab93": {
-                                            "variable": "$.72949c52-8dd3-47e2-850d-14c8f36e99e6.out.status",
+                                        "f7016a39-2ff1-42c8-a322-59db61c69f71": {
+                                            "variable": "$.da75ca52-29a9-4282-8569-c303d417aee2.out.status",
                                             "functions": []
                                         },
-                                        "d9ce19c6-d285-48b9-9664-9975f3175cfa": {
-                                            "variable": "$.72949c52-8dd3-47e2-850d-14c8f36e99e6.out.body",
+                                        "81c1b64a-3e09-480f-9314-78fd6a74be96": {
+                                            "variable": "$.da75ca52-29a9-4282-8569-c303d417aee2.out.body",
                                             "functions": [
                                                 {
                                                     "name": "g_jsonPath",
                                                     "params": [
                                                         {
-                                                            "value": "$.shop.id"
+                                                            "value": "$.data.shop.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "f258d8f7-480a-4d40-9891-453d6833dc8a": {
+                                            "variable": "$.da75ca52-29a9-4282-8569-c303d417aee2.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.data.shop.myshopifyDomain"
                                                         }
                                                     ]
                                                 }
@@ -94,12 +105,19 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{d3cfd9ce-ae99-4a6d-b354-bcb4e7fdab93}}}"
+                                                "field": "{{{f7016a39-2ff1-42c8-a322-59db61c69f71}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
                                             },
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{d9ce19c6-d285-48b9-9664-9975f3175cfa}}}"
+                                                "field": "{{{81c1b64a-3e09-480f-9314-78fd6a74be96}}}",
+                                                "assertion": "regex",
+                                                "regex": "^gid://shopify/Shop/\\d+$"
+                                            },
+                                            {
+                                                "field": "{{{f258d8f7-480a-4d40-9891-453d6833dc8a}}}",
+                                                "assertion": "regex",
+                                                "regex": "\\.myshopify\\.com$"
                                             }
                                         ]
                                     }
@@ -114,14 +132,13 @@
                 "onError": "stopFlow"
             }
         },
-        "97eccc3c-feb5-4215-a80c-21b3fd9ff4b0": {
+        "809266a2-ee02-4995-bc62-e8823821b5cd": {
             "type": "appmixer.utils.test.AfterAll",
-            "x": 640,
-            "y": 320,
-            "version": "1.0.0",
+            "x": 688,
+            "y": 16,
             "source": {
                 "in": {
-                    "cbe7512d-02dc-4ddc-a71e-25321e762d76": [
+                    "b7ba5404-6064-4cae-acd7-1b15c59e5bf2": [
                         "out"
                     ]
                 }
@@ -136,31 +153,29 @@
                 "onError": "stopFlow"
             }
         },
-        "4ccbb817-6e00-4f52-ac7c-d434020ef53f": {
+        "eabb244d-da6f-43ec-8071-fd723e00ae4e": {
             "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 832,
-            "y": 320,
-            "version": "1.0.1",
+            "x": 896,
+            "y": 16,
             "source": {
                 "in": {
-                    "97eccc3c-feb5-4215-a80c-21b3fd9ff4b0": [
+                    "809266a2-ee02-4995-bc62-e8823821b5cd": [
                         "out"
                     ]
                 }
             },
             "config": {
-                "properties": {},
                 "transform": {
                     "in": {
-                        "97eccc3c-feb5-4215-a80c-21b3fd9ff4b0": {
+                        "809266a2-ee02-4995-bc62-e8823821b5cd": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "recipients": {},
                                     "testCase": {},
                                     "result": {
-                                        "f716e490-9354-4a29-adff-6b7734101e51": {
-                                            "variable": "$.97eccc3c-feb5-4215-a80c-21b3fd9ff4b0.out",
+                                        "87270874-e8fd-484b-af68-cec42ef0dc06": {
+                                            "variable": "$.809266a2-ee02-4995-bc62-e8823821b5cd.out",
                                             "functions": []
                                         }
                                     }
@@ -168,7 +183,7 @@
                                 "lambda": {
                                     "recipients": "test@appmixer.ai",
                                     "testCase": "E2E Shopify - Make API Call",
-                                    "result": "{{{f716e490-9354-4a29-adff-6b7734101e51}}}"
+                                    "result": "{{{87270874-e8fd-484b-af68-cec42ef0dc06}}}"
                                 }
                             }
                         }
@@ -180,8 +195,5 @@
                 "onError": "stopFlow"
             }
         }
-    },
-    "name": "E2E Shopify - Make API Call",
-    "type": "automation",
-    "notes": {}
+    }
 }

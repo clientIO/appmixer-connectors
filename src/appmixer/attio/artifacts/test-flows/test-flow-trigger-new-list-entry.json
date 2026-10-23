@@ -1,0 +1,368 @@
+{
+    "name": "E2E Attio - New List Entry trigger",
+    "description": "New List Entry fires when a company is added to the e2e list.",
+    "flow": {
+        "23657213-29a0-4d27-a12a-b62d463bb77d": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "04e61f77-a3c4-45d7-ba8e-7729689cf1fe": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "23657213-29a0-4d27-a12a-b62d463bb77d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "23657213-29a0-4d27-a12a-b62d463bb77d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2dd65766-8b50-421c-be03-c577129ecb05": {
+            "type": "appmixer.attio.core.CreateCompany",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "04e61f77-a3c4-45d7-ba8e-7729689cf1fe": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "04e61f77-a3c4-45d7-ba8e-7729689cf1fe": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E Attio NewListEntry"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2a996b23-372c-4405-befc-f76edca0c019": {
+            "type": "appmixer.attio.core.AddRecordToList",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2dd65766-8b50-421c-be03-c577129ecb05": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2dd65766-8b50-421c-be03-c577129ecb05": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "listId": {},
+                                    "objectId": {},
+                                    "recordId": {
+                                        "af50e206-e08b-4f60-a021-1de9de5aa288": {
+                                            "variable": "$.2dd65766-8b50-421c-be03-c577129ecb05.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "listId": "e2e_attio_companies",
+                                    "objectId": "companies",
+                                    "recordId": "{{{af50e206-e08b-4f60-a021-1de9de5aa288}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "53b7fe0d-d6e3-40de-8cde-0aca87cd4575": {
+            "type": "appmixer.attio.core.NewListEntry",
+            "x": 64,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "listId": "e2e_attio_companies"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b95716cc-effa-4c12-84c6-4dd444ddaa30": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "53b7fe0d-d6e3-40de-8cde-0aca87cd4575": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "53b7fe0d-d6e3-40de-8cde-0aca87cd4575": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "6068660d-1ebd-49df-ae4b-37f3082bb05f": {
+                                            "variable": "$.53b7fe0d-d6e3-40de-8cde-0aca87cd4575.out.id",
+                                            "functions": []
+                                        },
+                                        "4ec42dc7-8d56-43f3-aaa6-12a5ab4dd880": {
+                                            "variable": "$.53b7fe0d-d6e3-40de-8cde-0aca87cd4575.out.parentRecordId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{6068660d-1ebd-49df-ae4b-37f3082bb05f}}}",
+                                                "assertion": "notEmpty",
+                                                "expected": ""
+                                            },
+                                            {
+                                                "field": "{{{4ec42dc7-8d56-43f3-aaa6-12a5ab4dd880}}}",
+                                                "assertion": "notEmpty",
+                                                "expected": ""
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1b11f65a-d1a2-4c96-82a9-251e024ac8fa": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b95716cc-effa-4c12-84c6-4dd444ddaa30": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a3ae4207-bc6b-482c-88ca-6fc2f995fc61": {
+            "type": "appmixer.attio.core.DeleteListEntry",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "1b11f65a-d1a2-4c96-82a9-251e024ac8fa": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1b11f65a-d1a2-4c96-82a9-251e024ac8fa": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "listId": {},
+                                    "entryId": {
+                                        "7197ddca-7c69-409c-9038-1c043e8936e9": {
+                                            "variable": "$.53b7fe0d-d6e3-40de-8cde-0aca87cd4575.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "listId": "e2e_attio_companies",
+                                    "entryId": "{{{7197ddca-7c69-409c-9038-1c043e8936e9}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e9a64547-42b5-4035-8d99-1d7448870458": {
+            "type": "appmixer.attio.core.DeleteRecord",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a3ae4207-bc6b-482c-88ca-6fc2f995fc61": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a3ae4207-bc6b-482c-88ca-6fc2f995fc61": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "objectId": {},
+                                    "recordId": {
+                                        "b6741d28-d93d-4ffc-bade-b64952ab717e": {
+                                            "variable": "$.53b7fe0d-d6e3-40de-8cde-0aca87cd4575.out.parentRecordId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "objectId": "companies",
+                                    "recordId": "{{{b6741d28-d93d-4ffc-bade-b64952ab717e}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5130f6f3-8120-4819-a4db-9a2fba8b9b2c": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e9a64547-42b5-4035-8d99-1d7448870458": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e9a64547-42b5-4035-8d99-1d7448870458": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "228df25e-47e5-4d36-8b06-fc97bb18f2a4": {
+                                            "variable": "$.1b11f65a-d1a2-4c96-82a9-251e024ac8fa.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Attio - New List Entry trigger",
+                                    "result": "{{{228df25e-47e5-4d36-8b06-fc97bb18f2a4}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "715811cd-13e4-4b3f-a1db-10b37a73205e": {
+            "x": 64,
+            "y": 400,
+            "width": 672,
+            "height": 224,
+            "content": "## ⏱ Trigger test\n\nThe trigger registers its Attio webhook when the flow starts. The provoke lane waits 1 minute (do not remove the Wait) and then creates a company and adds it to the list. The trigger lane asserts the event and cleans up. Run this flow alone: other flows creating the same kind of data at the same time would also fire the trigger."
+        },
+        "79e978bd-b218-426f-9bf8-735860a63ad8": {
+            "x": 64,
+            "y": 660,
+            "width": 672,
+            "height": 224,
+            "content": "## ⚠️ Test data assumption\n\nThis flow needs a **list with the API slug `e2e_attio_companies` whose parent object is Companies**. Attio has no API to delete lists, so the flow does not create one per run.\n\nSetup (once per workspace): Attio → Lists → *New list* → name it \"E2E Attio Companies\", choose **Companies**, then in the list settings set the API slug to `e2e_attio_companies`."
+        }
+    }
+}

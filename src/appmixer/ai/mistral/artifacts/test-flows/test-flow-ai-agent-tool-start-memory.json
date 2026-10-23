@@ -1,0 +1,615 @@
+{
+    "name": "E2E Mistral - AI Agent Tool Start and Memory",
+    "flow": {
+        "ac3ba519-4c60-4ba1-a1f1-b1a2af3f7ef4": {
+            "type": "appmixer.utils.controls.OnStart",
+            "version": "1.0.0",
+            "x": 64,
+            "y": 320,
+            "source": {}
+        },
+        "042a3756-e392-4a03-89c7-f14609951a2c": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "version": "1.0.0",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "ac3ba519-4c60-4ba1-a1f1-b1a2af3f7ef4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ac3ba519-4c60-4ba1-a1f1-b1a2af3f7ef4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "Test Case",
+                                                "text": "AI Agent Tool Start and Memory"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "9d2b3a60-0118-4dd0-ac9a-26fa11b1f247": {
+            "type": "appmixer.utils.storage.CreateStore",
+            "version": "1.0.0",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "042a3756-e392-4a03-89c7-f14609951a2c": [
+                        "out"
+                    ]
+                }
+            },
+            "label": "Memory store",
+            "config": {
+                "transform": {
+                    "in": {
+                        "042a3756-e392-4a03-89c7-f14609951a2c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {},
+                                    "clear": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E Mistral Agent Memory",
+                                    "clear": true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "658f3e29-6c32-4c01-b18b-11a02a5348ec": {
+            "type": "appmixer.ai.mistral.AIAgent",
+            "version": "1.0.0",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "9d2b3a60-0118-4dd0-ac9a-26fa11b1f247": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "stream": true
+                },
+                "transform": {
+                    "in": {
+                        "9d2b3a60-0118-4dd0-ac9a-26fa11b1f247": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "instructions": {},
+                                    "prompt": {},
+                                    "threadId": {},
+                                    "storeId": {
+                                        "4bf4b7b0-5d92-465a-98a2-56fcca7fe0d3": {
+                                            "variable": "$.9d2b3a60-0118-4dd0-ac9a-26fa11b1f247.out.storeId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "model": "mistral-small-latest",
+                                    "instructions": "You are a test agent. Look the weather up with the Weather tool, once per city the user asks about, and answer with exactly the texts the tool returned. Remember anything the user asks you to remember.",
+                                    "prompt": "What is the weather in Prague and in Brno? Also remember the code word ALBATROSS-42; do not repeat it now.",
+                                    "threadId": "mistral-e2e-toolstart-memory",
+                                    "storeId": "{{{4bf4b7b0-5d92-465a-98a2-56fcca7fe0d3}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "95950f58-af05-4ef8-bd4c-706b04bcdbb2": {
+            "type": "appmixer.ai.agenttools.ToolStart",
+            "version": "1.0.0",
+            "x": 688,
+            "y": 640,
+            "source": {
+                "in": {
+                    "658f3e29-6c32-4c01-b18b-11a02a5348ec": [
+                        "tool"
+                    ]
+                }
+            },
+            "label": "Weather",
+            "config": {
+                "properties": {
+                    "description": "Returns the current weather for one city. Call it once per city.",
+                    "parameters": {
+                        "ADD": [
+                            {
+                                "name": "city",
+                                "type": "string",
+                                "description": "Name of the city, e.g. Prague."
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "18d82b0f-6049-464c-83ab-4c46b0e2602d": {
+            "type": "appmixer.utils.controls.Condition",
+            "version": "1.0.0",
+            "x": 896,
+            "y": 640,
+            "source": {
+                "in": {
+                    "95950f58-af05-4ef8-bd4c-706b04bcdbb2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "95950f58-af05-4ef8-bd4c-706b04bcdbb2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "0257db13-6267-42b5-8691-00ceae3e7173": {
+                                            "variable": "$.95950f58-af05-4ef8-bd4c-706b04bcdbb2.out.args.city",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{0257db13-6267-42b5-8691-00ceae3e7173}}}",
+                                                        "operator": "=",
+                                                        "value": "Prague"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "988a605f-dd1b-486c-884d-fd103ed745e3": {
+            "type": "appmixer.utils.controls.MockValue",
+            "version": "1.0.0",
+            "x": 1104,
+            "y": 576,
+            "source": {
+                "in": {
+                    "18d82b0f-6049-464c-83ab-4c46b0e2602d": [
+                        "true"
+                    ]
+                }
+            },
+            "label": "Prague weather",
+            "config": {
+                "transform": {
+                    "in": {
+                        "18d82b0f-6049-464c-83ab-4c46b0e2602d": {
+                            "true": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "value": {}
+                                },
+                                "lambda": {
+                                    "value": "Sunny, 24 degrees in Prague."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "1550bb33-d22d-41ee-bcf8-bd96e22c9958": {
+            "type": "appmixer.utils.controls.MockValue",
+            "version": "1.0.0",
+            "x": 1104,
+            "y": 704,
+            "source": {
+                "in": {
+                    "18d82b0f-6049-464c-83ab-4c46b0e2602d": [
+                        "false"
+                    ]
+                }
+            },
+            "label": "Other weather",
+            "config": {
+                "transform": {
+                    "in": {
+                        "18d82b0f-6049-464c-83ab-4c46b0e2602d": {
+                            "false": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "value": {}
+                                },
+                                "lambda": {
+                                    "value": "Rainy, 12 degrees in Brno."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "77b24933-4624-4e60-bc72-ed78a2909072": {
+            "type": "appmixer.ai.agenttools.ToolOutput",
+            "version": "1.0.0",
+            "x": 1312,
+            "y": 640,
+            "source": {
+                "in": {
+                    "988a605f-dd1b-486c-884d-fd103ed745e3": [
+                        "out"
+                    ],
+                    "1550bb33-d22d-41ee-bcf8-bd96e22c9958": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "988a605f-dd1b-486c-884d-fd103ed745e3": {
+                            "out": {
+                                "type": "json2new",
+                                "lambda": {
+                                    "output": "{{{b248f862-446d-4e01-8659-99e0cffe072b}}}"
+                                },
+                                "modifiers": {
+                                    "output": {
+                                        "b248f862-446d-4e01-8659-99e0cffe072b": {
+                                            "variable": "$.988a605f-dd1b-486c-884d-fd103ed745e3.out.outvalue",
+                                            "functions": []
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "1550bb33-d22d-41ee-bcf8-bd96e22c9958": {
+                            "out": {
+                                "type": "json2new",
+                                "lambda": {
+                                    "output": "{{{4d1e9201-4e34-4169-9563-ca9fe1b5cbef}}}"
+                                },
+                                "modifiers": {
+                                    "output": {
+                                        "4d1e9201-4e34-4169-9563-ca9fe1b5cbef": {
+                                            "variable": "$.1550bb33-d22d-41ee-bcf8-bd96e22c9958.out.outvalue",
+                                            "functions": []
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ce4791e9-ae20-418b-8edf-33bbf52c32a9": {
+            "type": "appmixer.ai.mistral.AIAgent",
+            "version": "1.0.0",
+            "x": 1104,
+            "y": 320,
+            "source": {
+                "in": {
+                    "658f3e29-6c32-4c01-b18b-11a02a5348ec": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "stream": false
+                },
+                "transform": {
+                    "in": {
+                        "658f3e29-6c32-4c01-b18b-11a02a5348ec": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "instructions": {},
+                                    "prompt": {},
+                                    "threadId": {},
+                                    "storeId": {
+                                        "0fc7945c-01ad-4b14-9584-da655dcade4f": {
+                                            "variable": "$.9d2b3a60-0118-4dd0-ac9a-26fa11b1f247.out.storeId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "model": "mistral-small-latest",
+                                    "instructions": "You are a test agent. Answer from the conversation so far, as briefly as possible.",
+                                    "prompt": "What was the code word I gave you? Reply with the code word only.",
+                                    "threadId": "mistral-e2e-toolstart-memory",
+                                    "storeId": "{{{0fc7945c-01ad-4b14-9584-da655dcade4f}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "1b13741c-c0ac-4a77-88d9-c6402132b71f": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "658f3e29-6c32-4c01-b18b-11a02a5348ec": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "658f3e29-6c32-4c01-b18b-11a02a5348ec": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "cf752982-4e74-4469-8adc-466da8a4f8db": {
+                                            "variable": "$.658f3e29-6c32-4c01-b18b-11a02a5348ec.out.answer",
+                                            "functions": []
+                                        },
+                                        "76328e8a-3dda-496f-afc9-c1b2cd6d33b5": {
+                                            "variable": "$.658f3e29-6c32-4c01-b18b-11a02a5348ec.out.answer",
+                                            "functions": []
+                                        },
+                                        "21a1b42a-ff6b-4a11-bc4d-133ec58a7a5e": {
+                                            "variable": "$.658f3e29-6c32-4c01-b18b-11a02a5348ec.out.usage.total_tokens",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{cf752982-4e74-4469-8adc-466da8a4f8db}}}",
+                                                "assertion": "regex",
+                                                "regex": "[Ss]unny"
+                                            },
+                                            {
+                                                "field": "{{{76328e8a-3dda-496f-afc9-c1b2cd6d33b5}}}",
+                                                "assertion": "regex",
+                                                "regex": "[Rr]ainy"
+                                            },
+                                            {
+                                                "field": "{{{21a1b42a-ff6b-4a11-bc4d-133ec58a7a5e}}}",
+                                                "assertion": "notEmpty",
+                                                "expected": ""
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "10b58c8f-ef4d-4928-8240-67173fd5afe1": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "x": 1312,
+            "y": 320,
+            "source": {
+                "in": {
+                    "ce4791e9-ae20-418b-8edf-33bbf52c32a9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ce4791e9-ae20-418b-8edf-33bbf52c32a9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "940dd0b8-78ec-44b2-868a-b19414206f29": {
+                                            "variable": "$.ce4791e9-ae20-418b-8edf-33bbf52c32a9.out.answer",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{940dd0b8-78ec-44b2-868a-b19414206f29}}}",
+                                                "assertion": "regex",
+                                                "regex": "ALBATROSS-42"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "3a82fdb5-6292-448c-b0d3-0b9906e672fa": {
+            "type": "appmixer.utils.storage.Get",
+            "version": "1.0.0",
+            "x": 1312,
+            "y": 448,
+            "source": {
+                "in": {
+                    "ce4791e9-ae20-418b-8edf-33bbf52c32a9": [
+                        "out"
+                    ]
+                }
+            },
+            "label": "Thread in store",
+            "config": {
+                "transform": {
+                    "in": {
+                        "ce4791e9-ae20-418b-8edf-33bbf52c32a9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "storeId": {
+                                        "446056d3-5ef1-4a7c-801c-b15b6b8816e0": {
+                                            "variable": "$.9d2b3a60-0118-4dd0-ac9a-26fa11b1f247.out.storeId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "key": {}
+                                },
+                                "lambda": {
+                                    "storeId": "{{{446056d3-5ef1-4a7c-801c-b15b6b8816e0}}}",
+                                    "key": "thread_summary_mistral-e2e-toolstart-memory"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "16870b1e-0557-44ea-a8a7-44c38f3d7eae": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "x": 1520,
+            "y": 448,
+            "source": {
+                "in": {
+                    "3a82fdb5-6292-448c-b0d3-0b9906e672fa": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3a82fdb5-6292-448c-b0d3-0b9906e672fa": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "7bb8ef80-ed53-4a30-aaa1-bfb0578296c7": {
+                                            "variable": "$.3a82fdb5-6292-448c-b0d3-0b9906e672fa.out.value",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{7bb8ef80-ed53-4a30-aaa1-bfb0578296c7}}}",
+                                                "assertion": "regex",
+                                                "regex": "ALBATROSS-42"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "9a25e8af-4181-4b1f-b7c3-e4661c3b305b": {
+            "type": "appmixer.utils.test.AfterAll",
+            "version": "1.0.0",
+            "x": 1728,
+            "y": 448,
+            "source": {
+                "in": {
+                    "1b13741c-c0ac-4a77-88d9-c6402132b71f": [
+                        "out"
+                    ],
+                    "10b58c8f-ef4d-4928-8240-67173fd5afe1": [
+                        "out"
+                    ],
+                    "16870b1e-0557-44ea-a8a7-44c38f3d7eae": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "3f4715da-3f4c-4755-a63d-0e2698ae0581": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "version": "1.0.0",
+            "x": 1936,
+            "y": 448,
+            "source": {
+                "in": {
+                    "9a25e8af-4181-4b1f-b7c3-e4661c3b305b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "9a25e8af-4181-4b1f-b7c3-e4661c3b305b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "d3734551-2a55-43f9-96fd-24f58d04473f": {
+                                            "variable": "$.9a25e8af-4181-4b1f-b7c3-e4661c3b305b.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Mistral - AI Agent Tool Start and Memory",
+                                    "result": "{{{d3734551-2a55-43f9-96fd-24f58d04473f}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

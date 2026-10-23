@@ -1,22 +1,30 @@
 'use strict';
-const commons = require('../../lib');
+
+const lib = require('../../lib');
+const gqlCustomers = require('../../gql-customers');
 
 /**
- * Delete customer.
+ * Delete a customer.
  * @extends {Component}
  */
 module.exports = {
 
     async receive(context) {
 
-        const shopify = commons.getShopifyAPI(context);
-
         const { id } = context.messages.in.content;
-
         if (!id) {
-            throw new context.CancelError('ID is required!');
+            throw new context.CancelError('Customer ID is required!');
         }
-        await shopify.customer.delete(id);
-        return context.sendJson({ id }, 'deleted');
+
+        try {
+            await gqlCustomers(lib.runner(context)).delete(id);
+        } catch (err) {
+            // Customer not found, or it has orders and Shopify refuses to delete it.
+            if (err.statusCode === 422) {
+                throw new context.CancelError(err.message);
+            }
+            throw err;
+        }
+        return context.sendJson({}, 'out');
     }
 };

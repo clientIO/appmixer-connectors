@@ -1,232 +1,669 @@
 {
     "name": "appmixer.shopify.checkouts.NewCheckout",
+    "description": "Triggers when a checkout is started in the online store. The checkout is emitted with its details once Shopify lists it as an abandoned checkout; a checkout that is not listed yet (Shopify lists one after the customer enters contact details and a short delay) is emitted with its ID only.",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "This trigger fires when a checkout is created on Shopify.",
-    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDEyOCAxMjgiIGlkPSJTb2NpYWxfSWNvbnMiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDEyOCAxMjgiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPjxnIGlkPSJfeDM3X19zdHJva2UiPjxnIGlkPSJTaG9waWZ5Ij48cmVjdCBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgaGVpZ2h0PSIxMjgiIHdpZHRoPSIxMjgiLz48cGF0aCBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik03MC40NSwxOS41NjhjMC0wLjQzNiwwLjAwNC0wLjg2NCwwLjAwNC0xLjMzMiAgICBjMC00LjA4LTAuNTY1LTcuMzY4LTEuNDY5LTkuOTcyYzMuNjM0LDAuNDU2LDYuMDU0LDQuNjEyLDcuNjEsOS4zOTJDNzQuNzczLDE4LjIyNCw3Mi42OTksMTguODY4LDcwLjQ1LDE5LjU2OHogTTYyLjQyNiw2MC4yNDggICAgYzAsMC00LjI1MS0yLjI4LTkuNDYxLTIuMjhjLTcuNjQyLDAtOC4wMjgsNC44Mi04LjAyOCw2LjAzMmMwLDYuNjI4LDE3LjE4Nyw5LjE2OCwxNy4xODcsMjQuNjg4ICAgIGMwLDEyLjIwOC03LjcwNiwyMC4wNzItMTguMDk4LDIwLjA3MmMtMTIuNDcsMC0xOC44NDYtNy44LTE4Ljg0Ni03LjhsMy4zMzktMTEuMDg0YzAsMCw2LjU1NSw1LjY1NiwxMi4wODgsNS42NTYgICAgYzMuNjEsMCw1LjA4My0yLjg2LDUuMDgzLTQuOTQ4YzAtOC42NDQtMTQuMTAyLTkuMDMyLTE0LjEwMi0yMy4yMzZjMC0xMS45NTIsOC41MzgtMjMuNTIsMjUuNzcyLTIzLjUyICAgIGM2LjYzOSwwLDkuOTIzLDEuOTEyLDkuOTIzLDEuOTEyTDYyLjQyNiw2MC4yNDh6IE01OS41OTYsNC40MjhjMC43MTIsMCwxLjQyNSwwLjI0NCwyLjExLDAuNzE2ICAgIGMtNS4yNjYsMi40ODgtMTAuOTA2LDguNzYtMTMuMjksMjEuMjhjLTMuNDgzLDEuMDg0LTYuODg2LDIuMTQ0LTEwLjAzNCwzLjEyNEM0MS4xNzEsMTkuOTk2LDQ3Ljc5OCw0LjQyOCw1OS41OTYsNC40Mjh6ICAgICBNNjYuMTQ3LDIwLjE5MmMwLDAuMjUyLTAuMDA0LDAuNDg0LTAuMDA0LDAuNzE2Yy00LDEuMjQ0LTguMzQzLDIuNTk2LTEyLjY5NywzLjk1MkM1NS44OSwxNS4zOCw2MC40NzIsMTAuOCw2NC40OCw5LjA3MiAgICBDNjUuNDg3LDExLjYxNiw2Ni4xNDcsMTUuMjY4LDY2LjE0NywyMC4xOTJ6IE04NS4wNTgsMTUuMDk3Yy0wLjI2LDAuMDM0LTAuNDg1LDAuMDg1LTAuNjQyLDAuMTMxICAgIGMtMC4wODQsMC4wMjQtMS40ODUsMC40Ni0zLjgwNSwxLjE4Qzc4LjMzOSw5Ljg0LDc0LjMzMSwzLjgwNCw2Ny4yODIsMy44MDRjLTAuMTk1LDAtMC4zOTgsMC4wMDgtMC41OTcsMC4wMiAgICBDNjQuNjc5LDEuMTYsNjIuMTk1LDAsNjAuMDUsMEM0My42MjMsMCwzNS43NzQsMjAuNjQsMzMuMzE0LDMxLjEyNGMtNi4zODQsMS45ODgtMTAuOTE4LDMuNC0xMS40OTUsMy41ODQgICAgYy0zLjU2NiwxLjEyNC0zLjY3OCwxLjIzNi00LjE0Myw0LjYwOEMxNy4zMjIsNDEuODcyLDgsMTE0LjMyNCw4LDExNC4zMjRMODAuNjM5LDEyOGwwLjA3Ny0wLjAxN0w4NS4wNTgsMTUuMDk3eiBNOTAuMjU5LDE4LjY1MiAgICBjMi4wOTcsMi4wOTMsNC40NzUsNC40NjQsNC40NzUsNC40NjRzOS43ODcsMC43MjgsMTAuMjQ5LDAuNzY4YzAuNDY2LDAuMDQsMS4wMjcsMC4zOTYsMS4xMTQsMS4wNCAgICBjMC4wODgsMC42NDQsMTMuOTAzLDk0LjUyLDEzLjkwMyw5NC41MmwtMzMuOTAxLDcuMzY5TDkwLjI1OSwxOC42NTJ6IiBmaWxsPSIjODFCRjM3IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGlkPSJTaG9waWZ5XzFfIi8+PC9nPjwvZz48L3N2Zz4=",
     "private": false,
     "webhook": true,
     "auth": {
-        "service": "appmixer:shopify"
+        "service": "appmixer:shopify",
+        "scope": [
+            "read_orders",
+            "read_customers"
+        ]
     },
     "outPorts": [
         {
-            "name": "checkout",
-            "options": [
-                {
-                    "label": "ID",
-                    "value": "id",
-                    "schema": {
-                        "type": "number",
-                        "example": 8850485379234
-                    }
-                },
-                {
-                    "label": "Token",
-                    "value": "token",
-                    "schema": {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "webhookTopic"
+                ],
+                "properties": {
+                    "id": {
                         "type": "string",
-                        "example": "abc123def456ghi789"
-                    }
-                },
-                {
-                    "label": "Cart Token",
-                    "value": "cart_token",
-                    "schema": {
+                        "title": "Checkout ID",
+                        "example": "gid://shopify/AbandonedCheckout/72420962140241"
+                    },
+                    "name": {
                         "type": "string",
-                        "example": "68778783ad298f1c80c3bafcddeea02f"
-                    }
-                },
-                {
-                    "label": "Email",
-                    "value": "email",
-                    "schema": {
+                        "title": "Name",
+                        "example": "#72420962140241"
+                    },
+                    "abandonedCheckoutUrl": {
                         "type": "string",
-                        "example": "john.doe@example.com"
-                    }
-                },
-                {
-                    "label": "Gateway",
-                    "value": "gateway",
-                    "schema": {
+                        "title": "Abandoned Checkout URL",
+                        "example": "https://example-store.myshopify.com/107961745489/checkouts/ac/hWNHVSMfAwqum6xvRm7dyFu7/recover?key=938cca59d2e3eb603f988e4b8729d706"
+                    },
+                    "createdAt": {
                         "type": "string",
-                        "example": null
-                    }
-                },
-                {
-                    "label": "Buyer Accepts Marketing",
-                    "value": "buyer_accepts_marketing",
-                    "schema": {
+                        "title": "Created At",
+                        "example": "2026-10-02T13:27:33Z",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "title": "Updated At",
+                        "example": "2026-10-02T23:28:00Z",
+                        "format": "date-time"
+                    },
+                    "completedAt": {
+                        "type": "string",
+                        "title": "Completed At",
+                        "example": "2026-10-03T09:12:45Z",
+                        "format": "date-time"
+                    },
+                    "note": {
+                        "type": "string",
+                        "title": "Note",
+                        "example": "Gift wrap, please"
+                    },
+                    "taxesIncluded": {
                         "type": "boolean",
+                        "title": "Taxes Included",
                         "example": false
-                    }
-                },
-                {
-                    "label": "Created At",
-                    "value": "created_at",
-                    "schema": {
-                        "type": "string",
-                        "example": "2024-03-10T09:00:00-04:00"
-                    }
-                },
-                {
-                    "label": "Updated At",
-                    "value": "updated_at",
-                    "schema": {
-                        "type": "string",
-                        "example": "2024-03-10T09:12:00-04:00"
-                    }
-                },
-                {
-                    "label": "Landing Site",
-                    "value": "landing_site",
-                    "schema": {
-                        "type": "string",
-                        "example": "/products/great-product"
-                    }
-                },
-                {
-                    "label": "Note",
-                    "value": "note",
-                    "schema": {
-                        "type": "string",
-                        "example": null
-                    }
-                },
-                {
-                    "label": "Currency",
-                    "value": "currency",
-                    "schema": {
-                        "type": "string",
-                        "example": "USD"
-                    }
-                },
-                {
-                    "label": "Completed At",
-                    "value": "completed_at",
-                    "schema": {
-                        "type": "string",
-                        "example": null
-                    }
-                },
-                {
-                    "label": "Phone",
-                    "value": "phone",
-                    "schema": {
-                        "type": "string",
-                        "example": "+15145556789"
-                    }
-                },
-                {
-                    "label": "Customer Locale",
-                    "value": "customer_locale",
-                    "schema": {
-                        "type": "string",
-                        "example": "en"
-                    }
-                },
-                {
-                    "label": "Line Items",
-                    "value": "line_items",
-                    "schema": {
+                    },
+                    "discountCodes": {
                         "type": "array",
+                        "title": "Discount Codes",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "WELCOME10"
+                        ]
+                    },
+                    "customAttributes": {
+                        "type": "array",
+                        "title": "Custom Attributes",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "key"
+                            ],
+                            "properties": {
+                                "key": {
+                                    "type": "string",
+                                    "title": "Key",
+                                    "example": "gift"
+                                },
+                                "value": {
+                                    "type": "string",
+                                    "title": "Value",
+                                    "example": "yes"
+                                }
+                            }
+                        },
                         "example": [
                             {
-                                "key": "abc123",
-                                "title": "IPod Nano - 8GB",
-                                "quantity": 1,
-                                "price": "199.00",
-                                "product_id": 632910392,
-                                "variant_id": 39072856
+                                "key": "gift",
+                                "value": "yes"
                             }
                         ]
-                    }
-                },
-                {
-                    "label": "Abandoned Checkout Url",
-                    "value": "abandoned_checkout_url",
-                    "schema": {
-                        "type": "string",
-                        "example": "https://mystore.myshopify.com/12345/checkouts/abc123/recover"
-                    }
-                },
-                {
-                    "label": "Subtotal Price",
-                    "value": "subtotal_price",
-                    "schema": {
-                        "type": "string",
-                        "example": "199.00"
-                    }
-                },
-                {
-                    "label": "Total Tax",
-                    "value": "total_tax",
-                    "schema": {
-                        "type": "string",
-                        "example": "11.94"
-                    }
-                },
-                {
-                    "label": "Total Price",
-                    "value": "total_price",
-                    "schema": {
-                        "type": "string",
-                        "example": "204.99"
-                    }
-                },
-                {
-                    "label": "Customer",
-                    "value": "customer",
-                    "schema": {
+                    },
+                    "subtotalPriceSet": {
                         "type": "object",
-                        "example": {
-                            "id": 207119551,
-                            "email": "john.doe@example.com",
-                            "first_name": "John",
-                            "last_name": "Doe"
+                        "title": "Subtotal Price",
+                        "required": [
+                            "shopMoney"
+                        ],
+                        "properties": {
+                            "shopMoney": {
+                                "type": "object",
+                                "title": "Subtotal Price.Shop Money",
+                                "required": [
+                                    "amount",
+                                    "currencyCode"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "string",
+                                        "title": "Subtotal Price.Shop Money.Amount",
+                                        "example": "693.45"
+                                    },
+                                    "currencyCode": {
+                                        "type": "string",
+                                        "title": "Subtotal Price.Shop Money.Currency Code",
+                                        "example": "USD"
+                                    }
+                                }
+                            }
                         }
-                    }
-                },
-                {
-                    "label": "Shipping Address",
-                    "value": "shipping_address",
-                    "schema": {
+                    },
+                    "totalDiscountSet": {
                         "type": "object",
-                        "example": {
-                            "first_name": "John",
-                            "last_name": "Doe",
-                            "address1": "456 Oak Ave",
-                            "city": "Los Angeles",
-                            "province": "CA",
-                            "country": "US",
-                            "zip": "90001"
+                        "title": "Total Discount",
+                        "required": [
+                            "shopMoney"
+                        ],
+                        "properties": {
+                            "shopMoney": {
+                                "type": "object",
+                                "title": "Total Discount.Shop Money",
+                                "required": [
+                                    "amount",
+                                    "currencyCode"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "string",
+                                        "title": "Total Discount.Shop Money.Amount",
+                                        "example": "0.0"
+                                    },
+                                    "currencyCode": {
+                                        "type": "string",
+                                        "title": "Total Discount.Shop Money.Currency Code",
+                                        "example": "USD"
+                                    }
+                                }
+                            }
                         }
-                    }
-                },
-                {
-                    "label": "Billing Address",
-                    "value": "billing_address",
-                    "schema": {
+                    },
+                    "totalLineItemsPriceSet": {
                         "type": "object",
-                        "example": {
-                            "first_name": "John",
-                            "last_name": "Doe",
-                            "address1": "123 Main St",
-                            "city": "New York",
-                            "province": "NY",
-                            "country": "US",
-                            "zip": "10001"
+                        "title": "Total Line Items Price",
+                        "required": [
+                            "shopMoney"
+                        ],
+                        "properties": {
+                            "shopMoney": {
+                                "type": "object",
+                                "title": "Total Line Items Price.Shop Money",
+                                "required": [
+                                    "amount",
+                                    "currencyCode"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "string",
+                                        "title": "Total Line Items Price.Shop Money.Amount",
+                                        "example": "693.45"
+                                    },
+                                    "currencyCode": {
+                                        "type": "string",
+                                        "title": "Total Line Items Price.Shop Money.Currency Code",
+                                        "example": "USD"
+                                    }
+                                }
+                            }
                         }
-                    }
-                },
-                {
-                    "label": "Webhook Topic",
-                    "value": "webhookTopic",
-                    "schema": {
+                    },
+                    "totalTaxSet": {
+                        "type": "object",
+                        "title": "Total Tax",
+                        "required": [
+                            "shopMoney"
+                        ],
+                        "properties": {
+                            "shopMoney": {
+                                "type": "object",
+                                "title": "Total Tax.Shop Money",
+                                "required": [
+                                    "amount",
+                                    "currencyCode"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "string",
+                                        "title": "Total Tax.Shop Money.Amount",
+                                        "example": "0.0"
+                                    },
+                                    "currencyCode": {
+                                        "type": "string",
+                                        "title": "Total Tax.Shop Money.Currency Code",
+                                        "example": "USD"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "totalPriceSet": {
+                        "type": "object",
+                        "title": "Total Price",
+                        "required": [
+                            "shopMoney"
+                        ],
+                        "properties": {
+                            "shopMoney": {
+                                "type": "object",
+                                "title": "Total Price.Shop Money",
+                                "required": [
+                                    "amount",
+                                    "currencyCode"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "string",
+                                        "title": "Total Price.Shop Money.Amount",
+                                        "example": "693.45"
+                                    },
+                                    "currencyCode": {
+                                        "type": "string",
+                                        "title": "Total Price.Shop Money.Currency Code",
+                                        "example": "USD"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "customer": {
+                        "type": "object",
+                        "title": "Customer",
+                        "required": [
+                            "id",
+                            "legacyResourceId",
+                            "displayName"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "title": "Customer.ID",
+                                "example": "gid://shopify/Customer/27598980087889"
+                            },
+                            "legacyResourceId": {
+                                "type": "string",
+                                "title": "Customer.Legacy Resource ID",
+                                "example": "27598980087889"
+                            },
+                            "displayName": {
+                                "type": "string",
+                                "title": "Customer.Display Name",
+                                "example": "Jane Doe"
+                            },
+                            "defaultEmailAddress": {
+                                "type": "object",
+                                "title": "Customer.Default Email Address",
+                                "required": [
+                                    "emailAddress"
+                                ],
+                                "properties": {
+                                    "emailAddress": {
+                                        "type": "string",
+                                        "title": "Customer.Default Email Address.Email Address",
+                                        "example": "jane.doe@example.com"
+                                    }
+                                }
+                            },
+                            "defaultPhoneNumber": {
+                                "type": "object",
+                                "title": "Customer.Default Phone Number",
+                                "required": [
+                                    "phoneNumber"
+                                ],
+                                "properties": {
+                                    "phoneNumber": {
+                                        "type": "string",
+                                        "title": "Customer.Default Phone Number.Phone Number",
+                                        "example": "+16135550135"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "shippingAddress": {
+                        "type": "object",
+                        "title": "Shipping Address",
+                        "required": [
+                            "id"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "title": "Shipping Address.ID",
+                                "example": "gid://shopify/MailingAddress/38344136425553?model_name=CustomerAddress"
+                            },
+                            "firstName": {
+                                "type": "string",
+                                "title": "Shipping Address.First Name",
+                                "example": "Jane"
+                            },
+                            "lastName": {
+                                "type": "string",
+                                "title": "Shipping Address.Last Name",
+                                "example": "Doe"
+                            },
+                            "company": {
+                                "type": "string",
+                                "title": "Shipping Address.Company",
+                                "example": "Acme Inc."
+                            },
+                            "address1": {
+                                "type": "string",
+                                "title": "Shipping Address.Address Line 1",
+                                "example": "150 Elgin Street"
+                            },
+                            "address2": {
+                                "type": "string",
+                                "title": "Shipping Address.Address Line 2",
+                                "example": "Suite 800"
+                            },
+                            "city": {
+                                "type": "string",
+                                "title": "Shipping Address.City",
+                                "example": "Ottawa"
+                            },
+                            "province": {
+                                "type": "string",
+                                "title": "Shipping Address.Province",
+                                "example": "Ontario"
+                            },
+                            "provinceCode": {
+                                "type": "string",
+                                "title": "Shipping Address.Province Code",
+                                "example": "ON"
+                            },
+                            "country": {
+                                "type": "string",
+                                "title": "Shipping Address.Country",
+                                "example": "Canada"
+                            },
+                            "countryCodeV2": {
+                                "type": "string",
+                                "title": "Shipping Address.Country Code",
+                                "example": "CA"
+                            },
+                            "zip": {
+                                "type": "string",
+                                "title": "Shipping Address.ZIP",
+                                "example": "K2P 1L4"
+                            },
+                            "phone": {
+                                "type": "string",
+                                "title": "Shipping Address.Phone",
+                                "example": "+16135550135"
+                            }
+                        }
+                    },
+                    "billingAddress": {
+                        "type": "object",
+                        "title": "Billing Address",
+                        "required": [
+                            "id"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "title": "Billing Address.ID",
+                                "example": "gid://shopify/MailingAddress/38344136425553?model_name=CustomerAddress"
+                            },
+                            "firstName": {
+                                "type": "string",
+                                "title": "Billing Address.First Name",
+                                "example": "Jane"
+                            },
+                            "lastName": {
+                                "type": "string",
+                                "title": "Billing Address.Last Name",
+                                "example": "Doe"
+                            },
+                            "company": {
+                                "type": "string",
+                                "title": "Billing Address.Company",
+                                "example": "Acme Inc."
+                            },
+                            "address1": {
+                                "type": "string",
+                                "title": "Billing Address.Address Line 1",
+                                "example": "150 Elgin Street"
+                            },
+                            "address2": {
+                                "type": "string",
+                                "title": "Billing Address.Address Line 2",
+                                "example": "Suite 800"
+                            },
+                            "city": {
+                                "type": "string",
+                                "title": "Billing Address.City",
+                                "example": "Ottawa"
+                            },
+                            "province": {
+                                "type": "string",
+                                "title": "Billing Address.Province",
+                                "example": "Ontario"
+                            },
+                            "provinceCode": {
+                                "type": "string",
+                                "title": "Billing Address.Province Code",
+                                "example": "ON"
+                            },
+                            "country": {
+                                "type": "string",
+                                "title": "Billing Address.Country",
+                                "example": "Canada"
+                            },
+                            "countryCodeV2": {
+                                "type": "string",
+                                "title": "Billing Address.Country Code",
+                                "example": "CA"
+                            },
+                            "zip": {
+                                "type": "string",
+                                "title": "Billing Address.ZIP",
+                                "example": "K2P 1L4"
+                            },
+                            "phone": {
+                                "type": "string",
+                                "title": "Billing Address.Phone",
+                                "example": "+16135550135"
+                            }
+                        }
+                    },
+                    "lineItems": {
+                        "type": "array",
+                        "title": "Line Items",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "id",
+                                "quantity",
+                                "originalUnitPriceSet",
+                                "originalTotalPriceSet",
+                                "discountedTotalPriceSet"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "title": "ID",
+                                    "example": "gid://shopify/AbandonedCheckoutLineItem/ee015e1efa018c1b9c0c05e330f8fc65?checkout=47661deb0143428e4de409b48e960643&index=0"
+                                },
+                                "title": {
+                                    "type": "string",
+                                    "title": "Title",
+                                    "example": "The Multi-location Snowboard"
+                                },
+                                "variantTitle": {
+                                    "type": "string",
+                                    "title": "Variant Title",
+                                    "example": "Blue / 152 cm"
+                                },
+                                "sku": {
+                                    "type": "string",
+                                    "title": "SKU",
+                                    "example": "SNOW-ML-152"
+                                },
+                                "quantity": {
+                                    "type": "integer",
+                                    "title": "Quantity",
+                                    "example": 1
+                                },
+                                "originalUnitPriceSet": {
+                                    "type": "object",
+                                    "title": "Original Unit Price",
+                                    "required": [
+                                        "shopMoney"
+                                    ],
+                                    "properties": {
+                                        "shopMoney": {
+                                            "type": "object",
+                                            "title": "Original Unit Price.Shop Money",
+                                            "required": [
+                                                "amount",
+                                                "currencyCode"
+                                            ],
+                                            "properties": {
+                                                "amount": {
+                                                    "type": "string",
+                                                    "title": "Original Unit Price.Shop Money.Amount",
+                                                    "example": "693.45"
+                                                },
+                                                "currencyCode": {
+                                                    "type": "string",
+                                                    "title": "Original Unit Price.Shop Money.Currency Code",
+                                                    "example": "USD"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "originalTotalPriceSet": {
+                                    "type": "object",
+                                    "title": "Original Total Price",
+                                    "required": [
+                                        "shopMoney"
+                                    ],
+                                    "properties": {
+                                        "shopMoney": {
+                                            "type": "object",
+                                            "title": "Original Total Price.Shop Money",
+                                            "required": [
+                                                "amount",
+                                                "currencyCode"
+                                            ],
+                                            "properties": {
+                                                "amount": {
+                                                    "type": "string",
+                                                    "title": "Original Total Price.Shop Money.Amount",
+                                                    "example": "693.45"
+                                                },
+                                                "currencyCode": {
+                                                    "type": "string",
+                                                    "title": "Original Total Price.Shop Money.Currency Code",
+                                                    "example": "USD"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "discountedTotalPriceSet": {
+                                    "type": "object",
+                                    "title": "Discounted Total Price",
+                                    "required": [
+                                        "shopMoney"
+                                    ],
+                                    "properties": {
+                                        "shopMoney": {
+                                            "type": "object",
+                                            "title": "Discounted Total Price.Shop Money",
+                                            "required": [
+                                                "amount",
+                                                "currencyCode"
+                                            ],
+                                            "properties": {
+                                                "amount": {
+                                                    "type": "string",
+                                                    "title": "Discounted Total Price.Shop Money.Amount",
+                                                    "example": "693.45"
+                                                },
+                                                "currencyCode": {
+                                                    "type": "string",
+                                                    "title": "Discounted Total Price.Shop Money.Currency Code",
+                                                    "example": "USD"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "product": {
+                                    "type": "object",
+                                    "title": "Product",
+                                    "required": [
+                                        "id",
+                                        "title"
+                                    ],
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "title": "Product.ID",
+                                            "example": "gid://shopify/Product/16344831754321"
+                                        },
+                                        "title": {
+                                            "type": "string",
+                                            "title": "Product.Title",
+                                            "example": "The Multi-location Snowboard"
+                                        }
+                                    }
+                                },
+                                "variant": {
+                                    "type": "object",
+                                    "title": "Variant",
+                                    "required": [
+                                        "id",
+                                        "title"
+                                    ],
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "title": "Variant.ID",
+                                            "example": "gid://shopify/ProductVariant/62788974084177"
+                                        },
+                                        "title": {
+                                            "type": "string",
+                                            "title": "Variant.Title",
+                                            "example": "Blue / 152 cm"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "example": [
+                            {
+                                "id": "gid://shopify/AbandonedCheckoutLineItem/ee015e1efa018c1b9c0c05e330f8fc65?checkout=47661deb0143428e4de409b48e960643&index=0",
+                                "title": "The Multi-location Snowboard",
+                                "variantTitle": "Blue / 152 cm",
+                                "sku": "SNOW-ML-152",
+                                "quantity": 1,
+                                "originalUnitPriceSet": {
+                                    "shopMoney": {
+                                        "amount": "693.45",
+                                        "currencyCode": "USD"
+                                    }
+                                },
+                                "originalTotalPriceSet": {
+                                    "shopMoney": {
+                                        "amount": "693.45",
+                                        "currencyCode": "USD"
+                                    }
+                                },
+                                "discountedTotalPriceSet": {
+                                    "shopMoney": {
+                                        "amount": "693.45",
+                                        "currencyCode": "USD"
+                                    }
+                                },
+                                "product": {
+                                    "id": "gid://shopify/Product/16344831754321",
+                                    "title": "The Multi-location Snowboard"
+                                },
+                                "variant": {
+                                    "id": "gid://shopify/ProductVariant/62788974084177",
+                                    "title": "Blue / 152 cm"
+                                }
+                            }
+                        ]
+                    },
+                    "webhookTopic": {
                         "type": "string",
+                        "title": "Webhook Topic",
                         "example": "checkouts/create"
+                    },
+                    "token": {
+                        "type": "string",
+                        "title": "Token",
+                        "example": "47661deb0143428e4de409b48e960643"
                     }
                 }
-            ]
+            }
         }
-    ]
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDEyOCAxMjgiIGlkPSJTb2NpYWxfSWNvbnMiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDEyOCAxMjgiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPjxnIGlkPSJfeDM3X19zdHJva2UiPjxnIGlkPSJTaG9waWZ5Ij48cmVjdCBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgaGVpZ2h0PSIxMjgiIHdpZHRoPSIxMjgiLz48cGF0aCBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik03MC40NSwxOS41NjhjMC0wLjQzNiwwLjAwNC0wLjg2NCwwLjAwNC0xLjMzMiAgICBjMC00LjA4LTAuNTY1LTcuMzY4LTEuNDY5LTkuOTcyYzMuNjM0LDAuNDU2LDYuMDU0LDQuNjEyLDcuNjEsOS4zOTJDNzQuNzczLDE4LjIyNCw3Mi42OTksMTguODY4LDcwLjQ1LDE5LjU2OHogTTYyLjQyNiw2MC4yNDggICAgYzAsMC00LjI1MS0yLjI4LTkuNDYxLTIuMjhjLTcuNjQyLDAtOC4wMjgsNC44Mi04LjAyOCw2LjAzMmMwLDYuNjI4LDE3LjE4Nyw5LjE2OCwxNy4xODcsMjQuNjg4ICAgIGMwLDEyLjIwOC03LjcwNiwyMC4wNzItMTguMDk4LDIwLjA3MmMtMTIuNDcsMC0xOC44NDYtNy44LTE4Ljg0Ni03LjhsMy4zMzktMTEuMDg0YzAsMCw2LjU1NSw1LjY1NiwxMi4wODgsNS42NTYgICAgYzMuNjEsMCw1LjA4My0yLjg2LDUuMDgzLTQuOTQ4YzAtOC42NDQtMTQuMTAyLTkuMDMyLTE0LjEwMi0yMy4yMzZjMC0xMS45NTIsOC41MzgtMjMuNTIsMjUuNzcyLTIzLjUyICAgIGM2LjYzOSwwLDkuOTIzLDEuOTEyLDkuOTIzLDEuOTEyTDYyLjQyNiw2MC4yNDh6IE01OS41OTYsNC40MjhjMC43MTIsMCwxLjQyNSwwLjI0NCwyLjExLDAuNzE2ICAgIGMtNS4yNjYsMi40ODgtMTAuOTA2LDguNzYtMTMuMjksMjEuMjhjLTMuNDgzLDEuMDg0LTYuODg2LDIuMTQ0LTEwLjAzNCwzLjEyNEM0MS4xNzEsMTkuOTk2LDQ3Ljc5OCw0LjQyOCw1OS41OTYsNC40Mjh6ICAgICBNNjYuMTQ3LDIwLjE5MmMwLDAuMjUyLTAuMDA0LDAuNDg0LTAuMDA0LDAuNzE2Yy00LDEuMjQ0LTguMzQzLDIuNTk2LTEyLjY5NywzLjk1MkM1NS44OSwxNS4zOCw2MC40NzIsMTAuOCw2NC40OCw5LjA3MiAgICBDNjUuNDg3LDExLjYxNiw2Ni4xNDcsMTUuMjY4LDY2LjE0NywyMC4xOTJ6IE04NS4wNTgsMTUuMDk3Yy0wLjI2LDAuMDM0LTAuNDg1LDAuMDg1LTAuNjQyLDAuMTMxICAgIGMtMC4wODQsMC4wMjQtMS40ODUsMC40Ni0zLjgwNSwxLjE4Qzc4LjMzOSw5Ljg0LDc0LjMzMSwzLjgwNCw2Ny4yODIsMy44MDRjLTAuMTk1LDAtMC4zOTgsMC4wMDgtMC41OTcsMC4wMiAgICBDNjQuNjc5LDEuMTYsNjIuMTk1LDAsNjAuMDUsMEM0My42MjMsMCwzNS43NzQsMjAuNjQsMzMuMzE0LDMxLjEyNGMtNi4zODQsMS45ODgtMTAuOTE4LDMuNC0xMS40OTUsMy41ODQgICAgYy0zLjU2NiwxLjEyNC0zLjY3OCwxLjIzNi00LjE0Myw0LjYwOEMxNy4zMjIsNDEuODcyLDgsMTE0LjMyNCw4LDExNC4zMjRMODAuNjM5LDEyOGwwLjA3Ny0wLjAxN0w4NS4wNTgsMTUuMDk3eiBNOTAuMjU5LDE4LjY1MiAgICBjMi4wOTcsMi4wOTMsNC40NzUsNC40NjQsNC40NzUsNC40NjRzOS43ODcsMC43MjgsMTAuMjQ5LDAuNzY4YzAuNDY2LDAuMDQsMS4wMjcsMC4zOTYsMS4xMTQsMS4wNCAgICBjMC4wODgsMC42NDQsMTMuOTAzLDk0LjUyLDEzLjkwMyw5NC41MmwtMzMuOTAxLDcuMzY5TDkwLjI1OSwxOC42NTJ6IiBmaWxsPSIjODFCRjM3IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGlkPSJTaG9waWZ5XzFfIi8+PC9nPjwvZz48L3N2Zz4="
 }

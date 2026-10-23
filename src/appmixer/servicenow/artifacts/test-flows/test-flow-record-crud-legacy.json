@@ -1,0 +1,612 @@
+{
+    "name": "E2E ServiceNow - Record CRUD (legacy components)",
+    "description": "Creates an incident with the legacy CreateRecord, reads it (GetRecord), updates it (UpdateRecord), finds it (ListRecords), reads the table schema (GetTableSchema) and deletes it (DeleteRecord).",
+    "flow": {
+        "2d9d1621-74f8-495d-8eb6-e7970cbbd537": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "548b6707-3f1d-43e7-9867-281fd595d650": {
+            "type": "appmixer.servicenow.record.CreateRecord",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2d9d1621-74f8-495d-8eb6-e7970cbbd537": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2d9d1621-74f8-495d-8eb6-e7970cbbd537": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tableName": {},
+                                    "record": {
+                                        "e81842f2-3ae4-43e1-9a35-e0f103849f12": {
+                                            "variable": "$.2d9d1621-74f8-495d-8eb6-e7970cbbd537.out.started",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "tableName": "incident",
+                                    "record": "{\"short_description\": \"E2E ServiceNow legacy {{{e81842f2-3ae4-43e1-9a35-e0f103849f12}}}\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "30fa6d4c-ed61-4875-8e86-7707574e00c1": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "548b6707-3f1d-43e7-9867-281fd595d650": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "548b6707-3f1d-43e7-9867-281fd595d650": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "889d452e-0e1c-49d4-9f2c-0267af82fc8e": {
+                                            "variable": "$.548b6707-3f1d-43e7-9867-281fd595d650.out.sys_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{889d452e-0e1c-49d4-9f2c-0267af82fc8e}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "33712ff6-e422-426a-8d4d-223cdf4657d6": {
+            "type": "appmixer.servicenow.record.GetRecord",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "30fa6d4c-ed61-4875-8e86-7707574e00c1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "30fa6d4c-ed61-4875-8e86-7707574e00c1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tableName": {},
+                                    "sys_id": {
+                                        "857e8e72-4c80-46d0-94c0-82d95260a76f": {
+                                            "variable": "$.548b6707-3f1d-43e7-9867-281fd595d650.out.sys_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "tableName": "incident",
+                                    "sys_id": "{{{857e8e72-4c80-46d0-94c0-82d95260a76f}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "71e97c19-b215-4275-afe0-9e4c34f9f65d": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "33712ff6-e422-426a-8d4d-223cdf4657d6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "33712ff6-e422-426a-8d4d-223cdf4657d6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "6a6fdfe2-d737-4f4f-af17-9483669d3020": {
+                                            "variable": "$.33712ff6-e422-426a-8d4d-223cdf4657d6.out.sys_id",
+                                            "functions": []
+                                        },
+                                        "ca814fe2-0499-4ae2-92ab-56da9ff9ee98": {
+                                            "variable": "$.548b6707-3f1d-43e7-9867-281fd595d650.out.sys_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{6a6fdfe2-d737-4f4f-af17-9483669d3020}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{ca814fe2-0499-4ae2-92ab-56da9ff9ee98}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "24526bf7-a34e-4c1e-8161-b650b068a17d": {
+            "type": "appmixer.servicenow.record.UpdateRecord",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "71e97c19-b215-4275-afe0-9e4c34f9f65d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "71e97c19-b215-4275-afe0-9e4c34f9f65d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tableName": {},
+                                    "sys_id": {
+                                        "c28e774b-1e7e-4aab-ba8d-077e3d52a27a": {
+                                            "variable": "$.548b6707-3f1d-43e7-9867-281fd595d650.out.sys_id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "record": {
+                                        "428a0c7a-15f9-4abf-aad4-010d4c10faf9": {
+                                            "variable": "$.2d9d1621-74f8-495d-8eb6-e7970cbbd537.out.started",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "tableName": "incident",
+                                    "sys_id": "{{{c28e774b-1e7e-4aab-ba8d-077e3d52a27a}}}",
+                                    "record": "{\"short_description\": \"E2E ServiceNow legacy updated {{{428a0c7a-15f9-4abf-aad4-010d4c10faf9}}}\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "67f9b48c-1bae-4c26-b10b-a6af22bf1f18": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "24526bf7-a34e-4c1e-8161-b650b068a17d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "24526bf7-a34e-4c1e-8161-b650b068a17d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9056cc18-9527-41ce-8d07-5f82c7ef90dc": {
+                                            "variable": "$.24526bf7-a34e-4c1e-8161-b650b068a17d.out.short_description",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9056cc18-9527-41ce-8d07-5f82c7ef90dc}}}",
+                                                "assertion": "regex",
+                                                "regex": "^E2E ServiceNow legacy updated "
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a76f77a7-e491-49c8-8953-0af7ab2c5d2d": {
+            "type": "appmixer.servicenow.record.ListRecords",
+            "x": 1520,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "67f9b48c-1bae-4c26-b10b-a6af22bf1f18": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "67f9b48c-1bae-4c26-b10b-a6af22bf1f18": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tableName": {},
+                                    "sysparm_query": {
+                                        "6ad752ba-77f6-4717-99c4-0c1ca1a00e27": {
+                                            "variable": "$.548b6707-3f1d-43e7-9867-281fd595d650.out.sys_id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "sysparm_limit": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "tableName": "incident",
+                                    "sysparm_query": "sys_id={{{6ad752ba-77f6-4717-99c4-0c1ca1a00e27}}}",
+                                    "sysparm_limit": 10,
+                                    "outputType": "items"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5071e2f5-bfb7-43a7-a9b1-b2629f798213": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1728,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a76f77a7-e491-49c8-8953-0af7ab2c5d2d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a76f77a7-e491-49c8-8953-0af7ab2c5d2d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "6adf1dec-13dc-4ee2-87b4-35dc1c791cf9": {
+                                            "variable": "$.a76f77a7-e491-49c8-8953-0af7ab2c5d2d.out.items",
+                                            "functions": []
+                                        },
+                                        "71de2568-5ae6-4c4a-8fba-8f0574672c5f": {
+                                            "variable": "$.a76f77a7-e491-49c8-8953-0af7ab2c5d2d.out.items",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].short_description"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{6adf1dec-13dc-4ee2-87b4-35dc1c791cf9}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{71de2568-5ae6-4c4a-8fba-8f0574672c5f}}}",
+                                                "assertion": "regex",
+                                                "regex": "^E2E ServiceNow legacy updated "
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "21e415e1-493f-4281-b3d1-8546e9ea8645": {
+            "type": "appmixer.servicenow.record.GetTableSchema",
+            "x": 1936,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "5071e2f5-bfb7-43a7-a9b1-b2629f798213": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5071e2f5-bfb7-43a7-a9b1-b2629f798213": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tableName": {}
+                                },
+                                "lambda": {
+                                    "tableName": "incident"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c6c4e231-c09c-4be8-824d-2cbf14a4e543": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 2144,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "21e415e1-493f-4281-b3d1-8546e9ea8645": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "21e415e1-493f-4281-b3d1-8546e9ea8645": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a296a4c6-6679-42d2-bc0a-f665b006a998": {
+                                            "variable": "$.21e415e1-493f-4281-b3d1-8546e9ea8645.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].element"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a296a4c6-6679-42d2-bc0a-f665b006a998}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "084c9152-ca46-4c6c-87ec-03688db4807e": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 2352,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "30fa6d4c-ed61-4875-8e86-7707574e00c1": [
+                        "out"
+                    ],
+                    "71e97c19-b215-4275-afe0-9e4c34f9f65d": [
+                        "out"
+                    ],
+                    "67f9b48c-1bae-4c26-b10b-a6af22bf1f18": [
+                        "out"
+                    ],
+                    "5071e2f5-bfb7-43a7-a9b1-b2629f798213": [
+                        "out"
+                    ],
+                    "c6c4e231-c09c-4be8-824d-2cbf14a4e543": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a2226939-b827-47dd-8063-3ea1864a8b40": {
+            "type": "appmixer.servicenow.record.DeleteRecord",
+            "x": 2560,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "084c9152-ca46-4c6c-87ec-03688db4807e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "084c9152-ca46-4c6c-87ec-03688db4807e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tableName": {},
+                                    "sys_id": {
+                                        "b1cf2816-baa4-4c38-bc10-9e3762f8db72": {
+                                            "variable": "$.548b6707-3f1d-43e7-9867-281fd595d650.out.sys_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "tableName": "incident",
+                                    "sys_id": "{{{b1cf2816-baa4-4c38-bc10-9e3762f8db72}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "68e3327f-642f-48b3-8df6-c2b69e03f505": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2768,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a2226939-b827-47dd-8063-3ea1864a8b40": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "a2226939-b827-47dd-8063-3ea1864a8b40": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "8ade1eeb-7600-4f62-8e67-55c8e020ad9b": {
+                                            "variable": "$.084c9152-ca46-4c6c-87ec-03688db4807e.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E ServiceNow - Record CRUD (legacy components)",
+                                    "result": "{{{8ade1eeb-7600-4f62-8e67-55c8e020ad9b}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

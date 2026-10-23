@@ -1,7 +1,8 @@
 name: Claude Copilot Responder (auto-address Copilot review)
 
-# Sibling of vero-mention-responder.yml. That workflow reacts to a PERSON who
-# @-mentions `apx-vero` on a PR. THIS one reacts automatically to GitHub
+# Sibling of the @apx-vero mention responder (.github/openclaw/vero-mention/ in
+# Appmixer-ai/appmixer-components, run on the OpenClaw gateway), which reacts to a PERSON who @-mentions
+# `apx-vero` on a PR. THIS one reacts automatically to GitHub
 # Copilot's code review: when Copilot submits a review on an apx-vero-authored
 # PR, Claude reads every Copilot inline comment, decides which are valid, fixes
 # the valid ones on the PR branch, pushes (updating the PR in place) and replies
@@ -16,7 +17,8 @@ name: Claude Copilot Responder (auto-address Copilot review)
 #
 # ENTRY POINT: `repository_dispatch` of type `copilot-review`, carrying
 # {pr_number, review_id}. An Appmixer flow
-# (.github/appmixer-flows/copilot-review-dispatch.json) watches the repo for
+# (.github/appmixer-flows/copilot-review-dispatch.json in Appmixer-ai/appmixer-components)
+# watches the repo for
 # newly submitted Copilot reviews and fires it. repository_dispatch runs are
 # raised by the dispatching token's owner (a writer), always run on the default
 # branch and always get secrets — so nothing gates them.
@@ -321,7 +323,8 @@ jobs:
                   "Bash(git:*)",
                   "Bash(npm run lint)",
                   "Bash(npm ci)",
-                  "Bash(node scripts/validate.js:*)"
+                  "Bash(node scripts/validate.js:*)",
+                  "Bash(rm:*)"
                 ]
               }
             }
@@ -365,6 +368,14 @@ jobs:
               NOT push: you only edit code, commit on the current branch, and
               write the replies file described below. A later workflow step
               pushes your commits to the PR branch and posts the replies.
+            - The only shell commands you may run are `git`, `npm run lint`,
+              `npm ci`, `node scripts/validate.js` and `rm`; anything else
+              (`cat`, `node <script>`, `python3`, …) is denied. Read files —
+              including /tmp/copilot-review.json — with the Read tool and change
+              them with Edit, also JSON flow files whose Code Blocks embed code
+              in strings. Do NOT write helper scripts or scratch files into the
+              repository: you could not run them, and anything left in the
+              working tree is reported on the PR as unpushed work.
 
             Steps:
             1. Read /tmp/copilot-review.json. For EACH inline comment, judge whether

@@ -4,6 +4,24 @@ const pathModule = require('path');
 
 const IGNORE_PROPERTIES_INSPECTOR = ['sys_id'];
 
+// The instance name is typed by the user and becomes the request host, and the credentials are sent
+// to that host - so anything but a plain instance name (letters, digits, hyphens) is rejected.
+// Checked as typed, not normalized: components build their URLs from the stored value.
+const INSTANCE_PATTERN = /^[a-z0-9][a-z0-9-]*$/i;
+
+/**
+ * @param {string} instance - e.g. "dev144860" for dev144860.service-now.com
+ * @return {string} https origin of the ServiceNow instance
+ * @throws Error
+ */
+function instanceOrigin(instance) {
+
+    if (typeof instance !== 'string' || !INSTANCE_PATTERN.test(instance)) {
+        throw new Error('Invalid ServiceNow instance name. Enter the name only, e.g. "dev144860" for dev144860.service-now.com.');
+    }
+    return `https://${instance}.service-now.com`;
+}
+
 function getBasicAuth(username, password) {
     return Buffer.from(username + ':' + password).toString('base64');
 }
@@ -18,6 +36,17 @@ function getAuthHeaders(context) {
             'Authorization': 'Basic ' + getBasicAuth(context.auth.username, context.auth.password)
         };
     }
+}
+
+// A GET/HEAD must go out without a body. Axios serializes even an empty object to '{}'
+// (Content-Length: 2); ServiceNow does not read it, so on a reused keep-alive connection
+// those bytes desync the stream and the next response fails to parse with
+// 'Parse Error: Expected HTTP/' (HPE_INVALID_CONSTANT).
+function attachBody(options, method, data) {
+    if (!['GET', 'HEAD'].includes(String(method || 'GET').toUpperCase())) {
+        options.data = data;
+    }
+    return options;
 }
 
 function getCacheKey(obj) {
@@ -64,18 +93,17 @@ async function callEndpoint(context, {
     action
 }) {
 
-    const url = `https://${context.auth.instance}.service-now.com/api/now/${action}`;
+    const url = `${instanceOrigin(context.auth.instance)}/api/now/${action}`;
     const authHeaders = getAuthHeaders(context);
-    const options = {
+    const options = attachBody({
         method,
         url,
         headers: {
             'User-Agent': 'Appmixer (info@appmixer.com)',
             ...authHeaders
         },
-        data,
         params
-    };
+    }, method, data);
 
     return await context.httpRequest(options);
 }
@@ -97,7 +125,7 @@ async function requestPaginated(context, { method, url, data = {}, headers = {},
         page += 1;
         params.sysparm_offset = (page - 1) * pageSize;
 
-        const options = { method, url, data, headers, params };
+        const options = attachBody({ method, url, headers, params }, method, data);
         context.log({ step: 'Requesting paginated data', options });
         const response = await context.httpRequest(options);
 
@@ -140,6 +168,40 @@ async function fetchLatestRecord(context, { tableName, orderField = 'sys_created
 
     const records = data?.result || [];
     return records[0] || null;
+}
+
+const WEBHOOK_SECRET_MIN_LENGTH = 16;
+
+function hashWebhookSecret(secret) {
+    return crypto.createHash('sha256').update(`${secret}`).digest('hex');
+}
+
+/**
+ * Builds the params for the webhook triggers' listeners. The event name already contains the
+ * instance; the hash of the connection's webhook secret makes sure the plugin route only triggers
+ * listeners of the connection whose secret the ServiceNow business rule knows.
+ * The credentials are checked against the instance first, so a listener is never registered
+ * for an instance the connection can't access.
+ * @param {object} context Appmixer context of the trigger.
+ * @returns {Promise<{instance: string, secretHash: string}>}
+ */
+async function getListenerParams(context) {
+
+    const { instance, webhookSecret } = context.auth;
+    if (!webhookSecret || `${webhookSecret}`.length < WEBHOOK_SECRET_MIN_LENGTH) {
+        throw new context.CancelError(
+            `Webhook Secret (at least ${WEBHOOK_SECRET_MIN_LENGTH} characters) is required in the ServiceNow connection to use triggers. `
+            + 'Reconnect your account with a Webhook Secret and send it in the X-Appmixer-Secret header from your business rule.'
+        );
+    }
+
+    await callEndpoint(context, {
+        method: 'GET',
+        action: 'table/sys_db_object',
+        params: { sysparm_limit: 1, sysparm_fields: 'sys_id' }
+    });
+
+    return { instance, secretHash: hashWebhookSecret(webhookSecret) };
 }
 
 // Expects standardized outputType: 'item', 'items', 'file'
@@ -312,6 +374,7 @@ function toInspector(context, { columns, fields = '', schema: initialSchemaField
 }
 
 module.exports = {
+    instanceOrigin,
     getBasicAuth,
     getAuthHeaders,
     isAppmixerVariable,
@@ -319,6 +382,7 @@ module.exports = {
     sendArrayOutput,
     callEndpoint,
     fetchLatestRecord,
+    getListenerParams,
     toInspector,
     toOutputScheme,
     getColumns

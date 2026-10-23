@@ -1,8 +1,17 @@
 {
     "name": "E2E Shopify - Inventory Level Updated Trigger",
-    "type": "automation",
+    "description": "Inventory Level Updated fires when the available quantity of a new product is set.",
+    "notes": {
+        "066f2824-96a4-4056-abfa-2ccfa5d4fba8": {
+            "x": 64,
+            "y": 32,
+            "width": 672,
+            "height": 256,
+            "content": "## ⚠️ Self-provoking trigger flow\n\nOne minute after the start (keep the **Wait**: the webhook subscription needs it to become active) the bottom lane creates a draft product with a tracked inventory item (`productSet`) and sets its available quantity at the item's location to 7 (`inventorySetQuantities`; the idempotency key is the new inventory item id, unique per run).\n\nThe trigger lane asserts the emitted inventory level belongs to that product and deletes the product after `AfterAll`. The app needs `write_products` and `write_inventory`."
+        }
+    },
     "flow": {
-        "a0000000-0000-0000-0000-000000000001": {
+        "87880b6d-4013-42ec-9457-6f6dc5311b57": {
             "type": "appmixer.shopify.inventory.InventoryLevelUpdated",
             "x": 64,
             "y": 320,
@@ -15,31 +24,48 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000002": {
+        "ca47be53-85bc-4830-956b-236e1c7c86c6": {
             "type": "appmixer.utils.test.Assert",
             "x": 272,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000001": [
-                        "inventoryLevel"
+                    "87880b6d-4013-42ec-9457-6f6dc5311b57": [
+                        "out"
                     ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000001": {
-                            "inventoryLevel": {
+                        "87880b6d-4013-42ec-9457-6f6dc5311b57": {
+                            "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "field-item": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.inventoryLevel.inventory_item_id",
+                                        "bdd519b5-a63b-4015-ba19-4c34121b66f8": {
+                                            "variable": "$.87880b6d-4013-42ec-9457-6f6dc5311b57.out.id",
                                             "functions": []
                                         },
-                                        "field-topic": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.inventoryLevel.webhookTopic",
+                                        "9f245834-6005-4c01-ba91-9e96151265af": {
+                                            "variable": "$.87880b6d-4013-42ec-9457-6f6dc5311b57.out.webhookTopic",
+                                            "functions": []
+                                        },
+                                        "873a2a36-aecf-4246-90f0-b4de15b6e81a": {
+                                            "variable": "$.87880b6d-4013-42ec-9457-6f6dc5311b57.out.item.variants",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].product.title"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "862c088d-720f-45f7-bdeb-8bd9907ac026": {
+                                            "variable": "$.87880b6d-4013-42ec-9457-6f6dc5311b57.out.location.id",
                                             "functions": []
                                         }
                                     }
@@ -48,13 +74,24 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{field-item}}}"
+                                                "field": "{{{bdd519b5-a63b-4015-ba19-4c34121b66f8}}}",
+                                                "assertion": "regex",
+                                                "regex": "^gid://shopify/InventoryLevel/\\d+\\?inventory_item_id=\\d+$"
                                             },
                                             {
+                                                "field": "{{{9f245834-6005-4c01-ba91-9e96151265af}}}",
                                                 "assertion": "equal",
-                                                "field": "{{{field-topic}}}",
                                                 "expected": "inventory_levels/update"
+                                            },
+                                            {
+                                                "field": "{{{873a2a36-aecf-4246-90f0-b4de15b6e81a}}}",
+                                                "assertion": "equal",
+                                                "expected": "Appmixer E2E Inventory Product"
+                                            },
+                                            {
+                                                "field": "{{{862c088d-720f-45f7-bdeb-8bd9907ac026}}}",
+                                                "assertion": "regex",
+                                                "regex": "^gid://shopify/Location/\\d+$"
                                             }
                                         ]
                                     }
@@ -69,13 +106,13 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000003": {
+        "16f69baf-b138-4172-8664-94fa4562b932": {
             "type": "appmixer.utils.test.AfterAll",
             "x": 480,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000002": [
+                    "ca47be53-85bc-4830-956b-236e1c7c86c6": [
                         "out"
                     ]
                 }
@@ -90,36 +127,46 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000004": {
-            "type": "appmixer.utils.test.ProcessE2EResults",
+        "a3b064c6-b626-46a6-a32c-08ba2f661e0a": {
+            "type": "appmixer.shopify.core.MakeApiCall",
             "x": 688,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000003": [
+                    "16f69baf-b138-4172-8664-94fa4562b932": [
                         "out"
                     ]
                 }
             },
             "config": {
-                "properties": {},
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000003": {
+                        "16f69baf-b138-4172-8664-94fa4562b932": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "result": {
-                                        "field-result": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000003.out",
-                                            "functions": []
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "3fa0d3a9-d475-4f62-9e27-2059eeada716": {
+                                            "variable": "$.87880b6d-4013-42ec-9457-6f6dc5311b57.out.item.variants",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].product.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "recipients": "test@appmixer.com",
-                                    "testCase": "E2E Shopify - Inventory Level Updated Trigger",
-                                    "result": "{{{field-result}}}"
+                                    "url": "/graphql.json",
+                                    "method": "POST",
+                                    "body": "{\"query\": \"mutation ProductDelete($input: ProductDeleteInput!) { productDelete(input: $input) { deletedProductId userErrors { field message } } }\", \"variables\": {\"input\": {\"id\": \"{{{3fa0d3a9-d475-4f62-9e27-2059eeada716}}}\"}}}"
                                 }
                             }
                         }
@@ -131,7 +178,49 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000001": {
+        "5adf004d-1128-4e5c-bea1-90c7c4b84771": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a3b064c6-b626-46a6-a32c-08ba2f661e0a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a3b064c6-b626-46a6-a32c-08ba2f661e0a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "8f678ffb-218d-4879-ae24-62c10f3f0300": {
+                                            "variable": "$.16f69baf-b138-4172-8664-94fa4562b932.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Shopify - Inventory Level Updated Trigger",
+                                    "result": "{{{8f678ffb-218d-4879-ae24-62c10f3f0300}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9a8b30c3-6ec2-4594-a754-e1cb5a794275": {
             "type": "appmixer.utils.controls.OnStart",
             "x": 64,
             "y": 576,
@@ -142,13 +231,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000002": {
+        "17aac816-34ac-496b-b514-166c953fa50c": {
             "type": "appmixer.utils.timers.Wait",
             "x": 272,
             "y": 576,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000001": [
+                    "9a8b30c3-6ec2-4594-a754-e1cb5a794275": [
                         "out"
                     ]
                 }
@@ -156,10 +245,12 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000001": {
+                        "9a8b30c3-6ec2-4594-a754-e1cb5a794275": {
                             "out": {
                                 "type": "json2new",
-                                "modifiers": {},
+                                "modifiers": {
+                                    "interval": {}
+                                },
                                 "lambda": {
                                     "interval": "1m"
                                 }
@@ -173,13 +264,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000003": {
+        "e002f7e2-70e1-4ef8-a98b-256ce65cdf06": {
             "type": "appmixer.shopify.core.MakeApiCall",
             "x": 480,
             "y": 576,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000002": [
+                    "17aac816-34ac-496b-b514-166c953fa50c": [
                         "out"
                     ]
                 }
@@ -187,14 +278,18 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000002": {
+                        "17aac816-34ac-496b-b514-166c953fa50c": {
                             "out": {
                                 "type": "json2new",
-                                "modifiers": {},
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {}
+                                },
                                 "lambda": {
-                                    "url": "/products.json",
+                                    "url": "/graphql.json",
                                     "method": "POST",
-                                    "body": "{\"product\": {\"title\": \"Appmixer E2E Inventory Product\", \"variants\": [{\"inventory_management\": \"shopify\", \"price\": \"1.00\"}]}}"
+                                    "body": "{\"query\": \"mutation ProductSet($input: ProductSetInput!) { productSet(input: $input, synchronous: true) { product { id variants(first: 1) { nodes { inventoryItem { id inventoryLevels(first: 1) { nodes { location { id } } } } } } } userErrors { field message } } }\", \"variables\": {\"input\": {\"title\": \"Appmixer E2E Inventory Product\", \"status\": \"DRAFT\", \"productOptions\": [{\"name\": \"Title\", \"values\": [{\"name\": \"Default Title\"}]}], \"variants\": [{\"optionValues\": [{\"optionName\": \"Title\", \"name\": \"Default Title\"}], \"price\": \"1.00\", \"inventoryItem\": {\"tracked\": true}}]}}}"
                                 }
                             }
                         }
@@ -206,13 +301,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000004": {
+        "efccab72-2187-4bbd-b966-fb4ecfc9f618": {
             "type": "appmixer.shopify.core.MakeApiCall",
             "x": 688,
             "y": 576,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000003": [
+                    "e002f7e2-70e1-4ef8-a98b-256ce65cdf06": [
                         "out"
                     ]
                 }
@@ -220,64 +315,47 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000003": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {},
-                                "lambda": {
-                                    "url": "/locations.json",
-                                    "method": "GET"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "errorHandling": {
-                "autoRetry": false,
-                "onError": "stopFlow"
-            }
-        },
-        "b0000000-0000-0000-0000-000000000005": {
-            "type": "appmixer.shopify.core.MakeApiCall",
-            "x": 896,
-            "y": 576,
-            "source": {
-                "in": {
-                    "b0000000-0000-0000-0000-000000000004": [
-                        "out"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "b0000000-0000-0000-0000-000000000004": {
+                        "e002f7e2-70e1-4ef8-a98b-256ce65cdf06": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
+                                    "url": {},
+                                    "method": {},
                                     "body": {
-                                        "m-loc": {
-                                            "variable": "$.b0000000-0000-0000-0000-000000000004.out.body",
+                                        "26bbc9ca-a366-49e4-aa71-a670073f8acf": {
+                                            "variable": "$.e002f7e2-70e1-4ef8-a98b-256ce65cdf06.out.body",
                                             "functions": [
                                                 {
                                                     "name": "g_jsonPath",
                                                     "params": [
                                                         {
-                                                            "value": "$.locations[0].id"
+                                                            "value": "$.data.productSet.product.variants.nodes[0].inventoryItem.id"
                                                         }
                                                     ]
                                                 }
                                             ]
                                         },
-                                        "m-item": {
-                                            "variable": "$.b0000000-0000-0000-0000-000000000003.out.body",
+                                        "025bf1dc-acd8-4f77-90b1-8c01d4c85f4f": {
+                                            "variable": "$.e002f7e2-70e1-4ef8-a98b-256ce65cdf06.out.body",
                                             "functions": [
                                                 {
                                                     "name": "g_jsonPath",
                                                     "params": [
                                                         {
-                                                            "value": "$.product.variants[0].inventory_item_id"
+                                                            "value": "$.data.productSet.product.variants.nodes[0].inventoryItem.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "8977a987-c8ad-4d9d-953f-a1e89a464d2c": {
+                                            "variable": "$.e002f7e2-70e1-4ef8-a98b-256ce65cdf06.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.data.productSet.product.variants.nodes[0].inventoryItem.inventoryLevels.nodes[0].location.id"
                                                         }
                                                     ]
                                                 }
@@ -286,9 +364,9 @@
                                     }
                                 },
                                 "lambda": {
-                                    "url": "/inventory_levels/set.json",
+                                    "url": "/graphql.json",
                                     "method": "POST",
-                                    "body": "{\"location_id\":{{{m-loc}}},\"inventory_item_id\":{{{m-item}}},\"available\":7}"
+                                    "body": "{\"query\": \"mutation InventorySet($input: InventorySetQuantitiesInput!, $key: String!) { inventorySetQuantities(input: $input) @idempotent(key: $key) { inventoryAdjustmentGroup { id } userErrors { field message } } }\", \"variables\": {\"key\": \"appmixer-e2e-{{{26bbc9ca-a366-49e4-aa71-a670073f8acf}}}\", \"input\": {\"name\": \"available\", \"reason\": \"correction\", \"quantities\": [{\"inventoryItemId\": \"{{{025bf1dc-acd8-4f77-90b1-8c01d4c85f4f}}}\", \"locationId\": \"{{{8977a987-c8ad-4d9d-953f-a1e89a464d2c}}}\", \"quantity\": 7, \"changeFromQuantity\": null}]}}}"
                                 }
                             }
                         }
@@ -300,8 +378,5 @@
                 "onError": "stopFlow"
             }
         }
-    },
-    "wizard": {
-        "fields": []
     }
 }

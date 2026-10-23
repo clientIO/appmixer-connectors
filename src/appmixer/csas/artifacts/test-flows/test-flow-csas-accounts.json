@@ -1,0 +1,366 @@
+{
+    "name": "E2E Česká spořitelna - Accounts, Transactions and API Call",
+    "flow": {
+        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a01": {
+            "type": "appmixer.utils.controls.OnStart",
+            "label": "OnStart",
+            "version": "1.0.0",
+            "x": 208,
+            "y": 128,
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a02": {
+            "type": "appmixer.csas.accounts.ListAccounts",
+            "label": "ListAccounts",
+            "version": "1.0.0",
+            "x": 416,
+            "y": 128,
+            "config": {
+                "transform": {
+                    "in": {
+                        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a01": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a01": [
+                        "out"
+                    ]
+                }
+            }
+        },
+        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a03": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert",
+            "version": "1.0.0",
+            "x": 624,
+            "y": 128,
+            "config": {
+                "transform": {
+                    "in": {
+                        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a02": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f0-3e4f5a02": {
+                                            "functions": [],
+                                            "variable": "$.b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a02.out.id"
+                                        },
+                                        "f1-3e4f5a02": {
+                                            "functions": [],
+                                            "variable": "$.b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a02.out.currency"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f0-3e4f5a02}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f1-3e4f5a02}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a02": [
+                        "out"
+                    ]
+                }
+            }
+        },
+        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a04": {
+            "type": "appmixer.csas.accounts.FindTransactions",
+            "label": "FindTransactions",
+            "version": "1.0.0",
+            "x": 624,
+            "y": 256,
+            "config": {
+                "transform": {
+                    "in": {
+                        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a02": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "accountId": {
+                                        "acc": {
+                                            "functions": [],
+                                            "variable": "$.b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a02.out.id"
+                                        }
+                                    },
+                                    "outputType": {},
+                                    "order": {}
+                                },
+                                "lambda": {
+                                    "accountId": "{{{acc}}}",
+                                    "outputType": "array",
+                                    "order": "desc"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a02": [
+                        "out"
+                    ]
+                }
+            }
+        },
+        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a05": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert",
+            "version": "1.0.0",
+            "x": 832,
+            "y": 256,
+            "config": {
+                "transform": {
+                    "in": {
+                        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a04": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f0-3e4f5a04": {
+                                            "functions": [],
+                                            "variable": "$.b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a04.out.result"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f0-3e4f5a04}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a04": [
+                        "out"
+                    ]
+                }
+            }
+        },
+        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a06": {
+            "type": "appmixer.csas.accounts.MakeApiCall",
+            "label": "MakeApiCall",
+            "version": "1.0.0",
+            "x": 832,
+            "y": 384,
+            "config": {
+                "transform": {
+                    "in": {
+                        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a02": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "acc": {
+                                            "functions": [],
+                                            "variable": "$.b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a02.out.id"
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/my/accounts/{{{acc}}}/balance",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a02": [
+                        "out"
+                    ]
+                }
+            }
+        },
+        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a07": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert",
+            "version": "1.0.0",
+            "x": 1040,
+            "y": 384,
+            "config": {
+                "transform": {
+                    "in": {
+                        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a06": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f0-3e4f5a06": {
+                                            "functions": [],
+                                            "variable": "$.b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a06.out.statusCode"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{f0-3e4f5a06}}}",
+                                                "expected": "200"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a06": [
+                        "out"
+                    ]
+                }
+            }
+        },
+        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a08": {
+            "type": "appmixer.utils.test.AfterAll",
+            "label": "AfterAll",
+            "version": "1.0.0",
+            "x": 1248,
+            "y": 256,
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a03": [
+                        "out"
+                    ],
+                    "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a05": [
+                        "out"
+                    ],
+                    "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a07": [
+                        "out"
+                    ]
+                }
+            }
+        },
+        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a09": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "label": "ProcessE2EResults",
+            "version": "1.0.0",
+            "x": 1456,
+            "y": 256,
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a08": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "res": {
+                                            "functions": [],
+                                            "variable": "$.b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a08.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Česká spořitelna - Accounts, Transactions and API Call",
+                                    "result": "{{{res}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b1f0c6a2-3d4e-4f51-9a01-1c2d3e4f5a08": [
+                        "out"
+                    ]
+                }
+            }
+        }
+    }
+}

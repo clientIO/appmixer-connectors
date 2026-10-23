@@ -1,5 +1,7 @@
 'use strict';
 
+const { freshdeskOrigin } = require('./lib');
+
 module.exports = {
 
     type: 'apiKey',
@@ -30,7 +32,7 @@ module.exports = {
             const encoded = Buffer.from(`${context.apiKey}:X`).toString('base64');
             const { data } = await context.httpRequest({
                 method: 'GET',
-                url: `https://${context.domain}.freshdesk.com/api/v2/agents/me`,
+                url: `${freshdeskOrigin(context.domain)}/api/v2/agents/me`,
                 headers: {
                     Authorization: `Basic ${encoded}`
                 }
@@ -45,7 +47,7 @@ module.exports = {
             const encoded = Buffer.from(`${context.apiKey}:X`).toString('base64');
             await context.httpRequest({
                 method: 'GET',
-                url: `https://${context.domain}.freshdesk.com/api/v2/agents/me`,
+                url: `${freshdeskOrigin(context.domain)}/api/v2/agents/me`,
                 headers: {
                     Authorization: `Basic ${encoded}`
                 }

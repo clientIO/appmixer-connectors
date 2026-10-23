@@ -1,8 +1,31 @@
 const pathModule = require('path');
 
+// The bundle alias is typed by the user and becomes the request host (and path), and the API key is
+// sent there - so only a Freshworks host, optionally followed by a plain path, is accepted
+// (e.g. "acme-123.myfreshworks.com/crm/sales", or a legacy "acme.freshsales.io").
+// Checked as typed, not normalized: components build their URLs from the stored value.
+const BUNDLE_ALIAS_PATTERN =
+    /^[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)*\.(myfreshworks\.com|freshsales\.io)(\/[a-z0-9_-]+)*\/?$/i;
+
+/**
+ * @param {string} domain - bundle alias, e.g. "acme-123.myfreshworks.com/crm/sales"
+ * @return {string} https base URL of the Freshsales account, without a trailing slash
+ * @throws Error
+ */
+function freshsalesBaseUrl(domain) {
+
+    if (typeof domain !== 'string' || !BUNDLE_ALIAS_PATTERN.test(domain)) {
+        throw new Error('Invalid Freshsales bundle alias. Enter it as shown in your Profile settings, '
+            + 'e.g. "acme-123.myfreshworks.com/crm/sales".');
+    }
+    return `https://${domain.replace(/\/$/, '')}`;
+}
+
 const DEFAULT_PREFIX = '<SERVICE>-objects-export';
 
 module.exports = {
+
+    freshsalesBaseUrl,
 
     async sendArrayOutput({
         context,

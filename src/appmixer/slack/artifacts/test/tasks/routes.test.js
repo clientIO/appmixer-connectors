@@ -9,6 +9,8 @@ describe('Slack Tasks routes', () => {
     let context;
     let routes;
     let slackLib;
+    let memory;
+    let triggerWebhook;
 
     beforeEach(async () => {
         context = testUtils.createMockContext();
@@ -29,7 +31,7 @@ describe('Slack Tasks routes', () => {
         };
 
         // In-memory stores
-        const memory = { tasks: {}, webhooks: {} };
+        memory = { tasks: {}, webhooks: {} };
 
         // Stub Slack models via require cache (both legacy and root paths)
         const createTaskModuleStub = modulePath => ({
@@ -55,7 +57,7 @@ describe('Slack Tasks routes', () => {
                             getId: () => id,
                             getWebhookUrl: () => entity.webhookUrl,
                             addIsApprover: () => ({ toJson: () => entity }),
-                            save: async () => entity
+                            save: sinon.stub().resolves(entity)
                         };
                         return { save: async () => entity };
                     }
@@ -73,12 +75,13 @@ describe('Slack Tasks routes', () => {
         sinon.stub(slackLib, 'sendMessage').resolves({ ok: true });
 
         // Stub slack/tasks/utils.js before requiring routes to avoid external deps
+        triggerWebhook = sinon.stub().resolves({ ok: true });
         const createUtilsModuleStub = modulePath => ({
             id: modulePath,
             filename: modulePath,
             loaded: true,
             exports: () => ({
-                triggerWebhook: async () => {},
+                triggerWebhook,
                 getTask: async () => ({})
             })
         });
@@ -274,6 +277,51 @@ describe('Slack Tasks routes', () => {
             const getHandler = context.getRouteHandler('GET', '/tasks/{taskId}');
             const fetched = await getHandler({ params: { taskId: created.taskId }, query: {} });
             assert.equal(fetched.status, 'rejected');
+        });
+
+        describe('saving the task after the webhook', () => {
+
+            const approve = async () => {
+                const create = context.getRouteHandler('POST', '/tasks');
+                const created = await create({ payload: { title: 'T', description: 'D', requester: 'U1', approver: 'U2', channel: 'C1', decisionBy: new Date().toISOString(), status: 'pending' } });
+
+                sinon.stub(slackLib, 'isValidPayload').returns(true);
+                context.httpRequest.resolves({ statusCode: 200 });
+
+                const handler = context.getRouteHandler('POST', '/interactions');
+                const payload = {
+                    type: 'block_actions',
+                    user: { id: 'U2' },
+                    response_url: 'https://hooks.slack.com/actions/T/XXX/YYY',
+                    actions: [{ action_id: 'task_approve', value: created.taskId }]
+                };
+                const body = 'payload=' + encodeURIComponent(JSON.stringify(payload));
+
+                const h = { response: sinon.stub().returns({ code: sinon.stub() }) };
+                await handler({ payload: Buffer.from(body) }, h);
+                return memory.tasks[created.taskId];
+            };
+
+            it('saves the task when the webhook is delivered', async () => {
+                triggerWebhook.resolves({ ok: true });
+                const task = await approve();
+                assert(triggerWebhook.calledOnce, 'Should trigger the webhook');
+                assert(task.save.calledOnce, 'Should save the task');
+            });
+
+            it('does not save the task when the webhook fails transiently', async () => {
+                triggerWebhook.resolves({ ok: false, permanent: false, removed: false, httpStatus: 400 });
+                const task = await approve();
+                assert(triggerWebhook.calledOnce, 'Should trigger the webhook');
+                assert.equal(task.save.callCount, 0, 'triggerWebhook already saved the task for a retry');
+            });
+
+            it('does not save the task when the webhook target is gone', async () => {
+                triggerWebhook.resolves({ ok: false, permanent: true, removed: true, httpStatus: 404 });
+                const task = await approve();
+                assert(triggerWebhook.calledOnce, 'Should trigger the webhook');
+                assert.equal(task.save.callCount, 0, 'Should not recreate a task removed by triggerWebhook');
+            });
         });
     });
 

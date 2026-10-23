@@ -1,5 +1,7 @@
 'use strict';
 
+const { nexlOrigin } = require('./lib');
+
 module.exports = {
 
     type: 'apiKey',
@@ -27,7 +29,7 @@ module.exports = {
         validate: async (context) => {
             const response = await context.httpRequest({
                 method: 'POST',
-                url: `https://${context.regionPrefix}.nexl.cloud/api/graphql`,
+                url: `${nexlOrigin(context.regionPrefix)}/api/graphql`,
                 headers: {
                     Authorization: `Bearer ${context.apiKey}`
                 },

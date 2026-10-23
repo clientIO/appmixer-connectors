@@ -7,13 +7,21 @@ module.exports = {
         if (context.properties.generateOutputPortOptions) {
             return this.getOutputPortOptions(context);
         }
-        const { toolCalls } = context.messages.in.originalContent;
-        for (const toolCall of toolCalls) {
+
+        // Two ways in: the AI Agent's 'tools' port fans the tool calls out to every ToolStart
+        // (context.messages.in), or the agent's 'tool' port calls this one ToolStart through its
+        // webhook URL (context.messages.webhook), so the other tools on that port stay untouched.
+        const message = context.messages.webhook || context.messages.in;
+        const { toolCalls } = context.messages.webhook
+            ? (context.messages.webhook.content.data || {})
+            : context.messages.in.originalContent;
+        for (const toolCall of toolCalls || []) {
             // Process only those tool calls that are for this component.
-            // This is because the AI Agent fans out all tool calls by using sendJson(..., 'tools').
             if (toolCall.componentId === context.componentId) {
                 const out = { args: toolCall.args, toolCallId: toolCall.id };
-                await context.flow.stateSet(context.componentId + ':' + context.messages.in.correlationId, toolCall.id);
+                // ToolOutput reads the tool call id under this key; the correlation id of the
+                // message is inherited by every message of the chain.
+                await context.flow.stateSet(context.componentId + ':' + message.correlationId, toolCall.id);
                 await context.sendJson(out, 'out');
             }
         }

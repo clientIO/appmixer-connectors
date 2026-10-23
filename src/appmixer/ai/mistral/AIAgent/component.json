@@ -1,0 +1,194 @@
+{
+    "name": "appmixer.ai.mistral.AIAgent",
+    "label": "AI Agent",
+    "description": "Build an AI agent on a Mistral model that answers with context and acts through tools. Connect a component to the 'tool' output port to let the agent call it as a tool, and mark the fields the model should fill with the 'Model Defined Parameter' variable; components connected behind it run as further steps of the same tool. For a tool with its own description and logic (branches, loops), start it with 'Tool Start' and end it with 'Tool Output'. An MCP server on the 'tool' port gives the agent all of its tools.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:ai:mistral"
+    },
+    "quota": {
+        "manager": "appmixer:ai:mistral",
+        "resources": "requests"
+    },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "stream": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "stream": {
+                    "type": "toggle",
+                    "label": "Stream Responses",
+                    "defaultValue": false,
+                    "index": 1,
+                    "tooltip": "Stream partial responses as they arrive from the model. This only has an effect on the built-in chat utility; the agent still sends the complete answer to its output. For streaming to work, the 'Thread ID' of the agent must be set to the 'Thread ID' output of the 'Chat Trigger' component."
+                }
+            }
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "model": {
+                        "type": "string"
+                    },
+                    "instructions": {
+                        "type": "string",
+                        "maxLength": 256000
+                    },
+                    "prompt": {
+                        "type": "string"
+                    },
+                    "threadId": {
+                        "type": "string"
+                    },
+                    "fileId": {
+                        "type": "string"
+                    },
+                    "storeId": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "prompt"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "model": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Model",
+                        "defaultValue": "mistral-medium-latest",
+                        "tooltip": "Insert a model ID or select one that supports function calling, for example <code>mistral-medium-latest</code>. Defaults to <code>mistral-medium-latest</code> when left empty.",
+                        "source": {
+                            "url": "/component/appmixer/ai/mistral/ListModels?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListModels#toAgentModelSelectArray"
+                            }
+                        }
+                    },
+                    "instructions": {
+                        "type": "textarea",
+                        "index": 2,
+                        "label": "Instructions",
+                        "tooltip": "The system instructions the agent follows, for example 'You are a support agent. Look the order up with the tools before you answer.'. The maximum length is 256,000 characters."
+                    },
+                    "prompt": {
+                        "type": "textarea",
+                        "index": 3,
+                        "label": "Prompt",
+                        "tooltip": "The message the agent responds to."
+                    },
+                    "threadId": {
+                        "type": "text",
+                        "index": 4,
+                        "label": "Thread ID",
+                        "tooltip": "Set a thread ID to keep the context of the conversation: every message with the same ID continues the same thread. Without a thread ID the agent has no memory, which suits a simple question-and-answer step."
+                    },
+                    "fileId": {
+                        "type": "filepicker",
+                        "index": 5,
+                        "label": "File",
+                        "tooltip": "An optional file the agent uses as additional context. PNG, JPEG, GIF and WEBP images go to the model directly (use a vision model), a PDF is read with Mistral OCR first, and other files are sent as text, which suits CSV, JSON or source code."
+                    },
+                    "storeId": {
+                        "type": "text",
+                        "index": 6,
+                        "label": "Memory Data Store",
+                        "source": {
+                            "url": "/component/appmixer/utils/storage/ListStores?outPort=out",
+                            "data": {
+                                "transform": "./ListStores#toSelectArray"
+                            }
+                        },
+                        "tooltip": "A data store that keeps the conversation history, so the context survives across executions and other flows can read or export it. Without it the history is kept in the component state."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "answer": {
+                        "type": "string",
+                        "title": "Answer",
+                        "example": "Your order 1042 shipped yesterday and arrives on Friday."
+                    },
+                    "prompt": {
+                        "type": "string",
+                        "title": "Prompt",
+                        "example": "Where is my order 1042?"
+                    },
+                    "time": {
+                        "type": "integer",
+                        "title": "Time (ms)",
+                        "example": 1834
+                    },
+                    "usage": {
+                        "type": "object",
+                        "title": "Usage",
+                        "properties": {
+                            "prompt_tokens": {
+                                "type": "integer",
+                                "title": "Usage.Prompt Tokens",
+                                "example": 412
+                            },
+                            "completion_tokens": {
+                                "type": "integer",
+                                "title": "Usage.Completion Tokens",
+                                "example": 38
+                            },
+                            "total_tokens": {
+                                "type": "integer",
+                                "title": "Usage.Total Tokens",
+                                "example": 450
+                            }
+                        },
+                        "example": {
+                            "prompt_tokens": 412,
+                            "completion_tokens": 38,
+                            "total_tokens": 450
+                        }
+                    }
+                },
+                "required": [
+                    "answer",
+                    "prompt",
+                    "time"
+                ]
+            }
+        },
+        {
+            "name": "tool",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "modelDefinedParameter": {
+                        "type": "string",
+                        "title": "Model Defined Parameter",
+                        "example": "Paris"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAyLjUpIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRkZEODAwIi8+PHJlY3QgeD0iOCIgeT0iMCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0ZGRDgwMCIvPjxyZWN0IHg9IjAiIHk9IjEiIHdpZHRoPSI0IiBoZWlnaHQ9IjEiIGZpbGw9IiNGRkFGMDAiLz48cmVjdCB4PSI2IiB5PSIxIiB3aWR0aD0iNCIgaGVpZ2h0PSIxIiBmaWxsPSIjRkZBRjAwIi8+PHJlY3QgeD0iMCIgeT0iMiIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEiIGZpbGw9IiNGRjgyMDUiLz48cmVjdCB4PSIwIiB5PSIzIiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRkE1MDBGIi8+PHJlY3QgeD0iNCIgeT0iMyIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0ZBNTAwRiIvPjxyZWN0IHg9IjgiIHk9IjMiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiNGQTUwMEYiLz48cmVjdCB4PSIwIiB5PSI0IiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRTEwNTAwIi8+PHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0UxMDUwMCIvPjxyZWN0IHg9IjgiIHk9IjQiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiNFMTA1MDAiLz48L2c+PC9zdmc+"
+}

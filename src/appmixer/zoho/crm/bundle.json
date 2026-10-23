@@ -1,6 +1,6 @@
 {
     "name": "appmixer.zoho.crm",
-    "version": "2.4.0",
+    "version": "2.4.3",
     "changelog": {
         "1.0.0": [
             "Initial version"
@@ -37,6 +37,18 @@
             "Fixed intermittent \"Parse Error: Expected HTTP/\" (HPE_INVALID_CONSTANT) failures in components that read from Zoho. Every GET request was sent with an empty JSON body ({}), which Zoho does not read; on a reused connection those stray bytes corrupted the next response. GET and HEAD requests are now sent without a body.",
             "A refused OAuth token request is reported instead of being stored. Zoho answers with HTTP 200 and an `error` in the body, so a failed token refresh used to leave the account holding an empty access token: it kept looking connected and every later call failed with an unrelated \"Access token not found\". An account without a refresh token now says so as well.",
             "CreateCustomModule also asks for the module read permission, which it needs to read the created module back. One connected account then covers all three custom module components: an account is matched to a component by the exact permission strings it was granted, so an account holding only the write permission was refused by Find/Get Custom Module."
+        ],
+        "2.4.1": [
+            "Accounts in the Canada, Japan, Saudi Arabia, United Kingdom, United Arab Emirates and Singapore data centers can be connected. Connecting a Canada account used to fail with \"Invalid access token\": the region was not recognized, so the authorization code was exchanged at accounts.zoho.com and the API was called at www.zohoapis.com. The connector now uses the accounts server Zoho names in the redirect callback and the API host from the token response (`api_domain`), both checked against the known Zoho data centers. Existing accounts keep working without reconnecting.",
+            "An unknown data center region is reported instead of silently falling back to the US data center.",
+            "MakeApiCall calls the API host of the account's data center (it used its own region list, without Canada, Japan, Saudi Arabia, the United Kingdom, the United Arab Emirates and Singapore).",
+            "Connecting an account through the Auth Hub no longer fails with \"Missing region: undefined.\" The data center is found by asking Zoho - the code exchange and the profile request try the data centers until one accepts the authorization code or the access token - instead of being remembered from the redirect callback, which in the Auth Hub runs as a separate request, possibly in another process. Token refresh through the Auth Hub, which does not know the account's data center either, finds it the same way."
+        ],
+        "2.4.2": [
+            "Clearer error when a module cannot be used. Zoho answers with a bare \"the module name given seems to be invalid\" (INVALID_MODULE) or \"permission denied to access the module\" (NO_PERMISSION); the error now also shows the request and the usual reasons: the module is not in the edition of the connected Zoho CRM organization or is disabled, the name is not a module API name, or the profile of the connected user has no permission for it."
+        ],
+        "2.4.3": [
+            "MakeApiCall: Request Headers and Query Parameters set in the Designer are now sent. They were silently dropped: the key-value field stores its rows as a JSON object string, which the component did not parse."
         ]
     }
 }

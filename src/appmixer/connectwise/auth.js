@@ -1,5 +1,7 @@
 'use strict';
 
+const ENVIRONMENT_PATTERN = /^(au|eu|na|staging)$/;
+
 module.exports = {
 
     type: 'apiKey',
@@ -49,7 +51,12 @@ module.exports = {
 
         accountNameFromProfileInfo: 'companyId',
 
-        validate: function(context) {
+        validate: async function(context) {
+            // The environment becomes part of the request host, and the keys are sent to that host.
+            // The select offers these values only, but the field can be set through the API as well.
+            if (!ENVIRONMENT_PATTERN.test(context.environment)) {
+                throw new Error('Invalid ConnectWise environment. Choose Australia, Europe, North America or Staging.');
+            }
             const url = (context.environment === 'staging') ?
                 'https://api-staging.connectwisedev.com/v4_6_release/apis/3.0/system/info' :
                 `https://api-${context.environment}.myconnectwise.net/v4_6_release/apis/3.0/system/info`;

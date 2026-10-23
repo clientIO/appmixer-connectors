@@ -1,5 +1,6 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
+const gqlProducts = require('../../gql-products');
 
 /**
  * Get a product.
@@ -9,14 +10,12 @@ module.exports = {
 
     async receive(context) {
 
-        const shopify = commons.getShopifyAPI(context);
         const { id } = context.messages.in.content;
-
-
         if (!id) {
-            throw new context.CancelError('ID is required!');
+            throw new context.CancelError('Product ID is required!');
         }
-        const product = await shopify.product.get(id);
-        return context.sendJson(product, 'product');
+
+        const product = await gqlProducts(lib.runner(context)).get(id);
+        return context.sendJson(product, 'out');
     }
 };

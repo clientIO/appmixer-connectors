@@ -1,5 +1,7 @@
 'use strict';
 
+const { freshsalesBaseUrl } = require('./lib');
+
 module.exports = {
     type: 'apiKey',
     definition: {
@@ -27,7 +29,7 @@ module.exports = {
 
         validate: async function(context) {
             // appmixer-944514646623155365.myfreshworks.com/crm/sales
-            const url = `https://${context.domain}/api/selector/owners`;
+            const url = `${freshsalesBaseUrl(context.domain)}/api/selector/owners`;
             const headers = {
                 'Authorization': `Token token=${context.apiKey}`,
                 'Content-Type': 'application/json',

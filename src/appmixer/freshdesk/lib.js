@@ -2,6 +2,24 @@
 
 const pathModule = require('path');
 
+// The domain is typed by the user and becomes the request host, and the API key is sent to that
+// host - so anything but a plain Freshdesk subdomain (letters, digits, hyphens) is rejected.
+// Checked as typed, not normalized: components build their URLs from the stored value.
+const SUBDOMAIN_PATTERN = /^[a-z0-9][a-z0-9-]*$/i;
+
+/**
+ * @param {string} domain - e.g. "example" for example.freshdesk.com
+ * @return {string} https origin of the Freshdesk account
+ * @throws Error
+ */
+function freshdeskOrigin(domain) {
+
+    if (typeof domain !== 'string' || !SUBDOMAIN_PATTERN.test(domain)) {
+        throw new Error('Invalid Freshdesk domain. Enter the subdomain only, e.g. "example" for example.freshdesk.com.');
+    }
+    return `https://${domain}.freshdesk.com`;
+}
+
 /**
  * Authenticated Freshdesk API request via context.httpRequest (replaces the axios dependency).
  * Centralizes base URL, Basic auth (apiKey:X) and default JSON content type so every component
@@ -19,7 +37,7 @@ const pathModule = require('path');
  */
 async function apiCall(context, { method = 'GET', url, params, data, headers = {}, responseType } = {}) {
 
-    const baseUrl = `https://${context.auth.domain}.freshdesk.com/api/v2`;
+    const baseUrl = `${freshdeskOrigin(context.auth.domain)}/api/v2`;
     const targetUrl = /^https?:\/\//.test(url) ? url : `${baseUrl}${url}`;
     const credentials = Buffer.from(`${context.auth.apiKey}:X`).toString('base64');
     const hasContentType = Object.keys(headers).some(name => name.toLowerCase() === 'content-type');
@@ -202,6 +220,7 @@ async function sendArrayOutput({ context, records, outputType, defaultPrefix = '
 }
 
 module.exports = {
+    freshdeskOrigin,
     apiCall,
     mapTicket,
     requestTickets,

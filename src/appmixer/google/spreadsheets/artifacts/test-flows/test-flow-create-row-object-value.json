@@ -1,0 +1,290 @@
+{
+    "name": "E2E Google/spreadsheets - Create Row with object value",
+    "description": "Regression test for issue #1393: CreateRow receives an array of objects in the Email column (sheet header row: Name | Email). The row must be written with the value as a JSON string instead of being rejected by Google with 400 \"Invalid values[...]: list_value\". FindRow then reads the row back and checks the cell text.",
+    "flow": {
+        "1244c212-f54f-42bf-9154-f0a906d7b908": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "58d78426-9dda-4631-b24a-53284479ad4d": {
+            "type": "appmixer.google.spreadsheets.CreateRow",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "1244c212-f54f-42bf-9154-f0a906d7b908": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "sheetId": "1VUr70u3lmGaBwdNan7Cx9M0sUetUrqWfozF9wOupg-8",
+                    "worksheetId": "0/Sheet1"
+                },
+                "transform": {
+                    "in": {
+                        "1244c212-f54f-42bf-9154-f0a906d7b908": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "Name": {
+                                        "0e83832e-4548-4b78-93e6-78264e208435": {
+                                            "variable": "$.1244c212-f54f-42bf-9154-f0a906d7b908.out.started",
+                                            "functions": []
+                                        }
+                                    },
+                                    "Email": {}
+                                },
+                                "lambda": {
+                                    "Name": "E2E Object Value {{{0e83832e-4548-4b78-93e6-78264e208435}}}",
+                                    "Email": [
+                                        {
+                                            "name": "A",
+                                            "nights": 2
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bd48ce32-983d-40a3-95fd-a807c12d82c0": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "58d78426-9dda-4631-b24a-53284479ad4d": [
+                        "createdRow"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "58d78426-9dda-4631-b24a-53284479ad4d": {
+                            "createdRow": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "39a799c4-79fb-447c-bfee-4dd4defd6391": {
+                                            "variable": "$.58d78426-9dda-4631-b24a-53284479ad4d.createdRow.newRows",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{39a799c4-79fb-447c-bfee-4dd4defd6391}}}",
+                                                "assertion": "equal",
+                                                "expected": "1"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "800f06b7-de64-49cb-a5fd-90cdab6fb119": {
+            "type": "appmixer.google.spreadsheets.FindRow",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "58d78426-9dda-4631-b24a-53284479ad4d": [
+                        "createdRow"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "sheetId": "1VUr70u3lmGaBwdNan7Cx9M0sUetUrqWfozF9wOupg-8",
+                    "worksheetId": "0/Sheet1"
+                },
+                "transform": {
+                    "in": {
+                        "58d78426-9dda-4631-b24a-53284479ad4d": {
+                            "createdRow": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "column": {},
+                                    "value": {
+                                        "5e8c8b35-c742-437d-944c-f441526a0e92": {
+                                            "variable": "$.1244c212-f54f-42bf-9154-f0a906d7b908.out.started",
+                                            "functions": []
+                                        }
+                                    },
+                                    "operator": {}
+                                },
+                                "lambda": {
+                                    "column": "Name",
+                                    "value": "E2E Object Value {{{5e8c8b35-c742-437d-944c-f441526a0e92}}}",
+                                    "operator": "equalTo"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cd6a3499-e21f-4b5b-92c9-e94ed3e9a825": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "800f06b7-de64-49cb-a5fd-90cdab6fb119": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "800f06b7-de64-49cb-a5fd-90cdab6fb119": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "44eda678-3dca-44b7-9027-b65044fa76cc": {
+                                            "variable": "$.800f06b7-de64-49cb-a5fd-90cdab6fb119.out.Email",
+                                            "functions": []
+                                        },
+                                        "417be0e0-6a17-4023-824d-aa7cacc4197d": {
+                                            "variable": "$.800f06b7-de64-49cb-a5fd-90cdab6fb119.out.Name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{417be0e0-6a17-4023-824d-aa7cacc4197d}}}",
+                                                "assertion": "regex",
+                                                "regex": "^E2E Object Value "
+                                            },
+                                            {
+                                                "field": "{{{44eda678-3dca-44b7-9027-b65044fa76cc}}}",
+                                                "assertion": "equal",
+                                                "expected": "[{\"name\":\"A\",\"nights\":2}]"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1b168877-95da-43d8-8720-94a8a9430cee": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bd48ce32-983d-40a3-95fd-a807c12d82c0": [
+                        "out"
+                    ],
+                    "cd6a3499-e21f-4b5b-92c9-e94ed3e9a825": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 60
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e723a432-83bc-4318-8be2-f40834e2e83c": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "1b168877-95da-43d8-8720-94a8a9430cee": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "1b168877-95da-43d8-8720-94a8a9430cee": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "cae2427c-fa39-46ec-9a7d-0fbe3a90cf01": {
+                                            "variable": "$.1b168877-95da-43d8-8720-94a8a9430cee.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Google/spreadsheets - Create Row with object value",
+                                    "result": "{{{cae2427c-fa39-46ec-9a7d-0fbe3a90cf01}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

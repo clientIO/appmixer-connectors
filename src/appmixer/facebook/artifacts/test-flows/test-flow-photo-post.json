@@ -1,0 +1,376 @@
+{
+    "name": "E2E Facebook - photo post",
+    "description": "End-to-end test for Facebook photo posts: Create Page Post attaches one uploaded file and one image URL, Find Page Posts returns the post with both photos as attachments, then the post and the file are deleted.",
+    "flow": {
+        "fdc337f1-5715-438d-9083-d69a6c1408d0": {
+            "type": "appmixer.utils.controls.OnStart",
+            "label": "OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "ac97e6f1-98e1-4ec5-89b1-343abf1c5799": {
+            "type": "appmixer.utils.files.DownloadFile",
+            "label": "DownloadFile",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "fdc337f1-5715-438d-9083-d69a6c1408d0": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "fdc337f1-5715-438d-9083-d69a6c1408d0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "link": {},
+                                    "customFileName": {}
+                                },
+                                "lambda": {
+                                    "link": "https://www.gstatic.com/webp/gallery/1.jpg",
+                                    "customFileName": "e2e-facebook-photo.jpg"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "1ba3d811-413d-42ad-b20a-11884329e7da": {
+            "type": "appmixer.facebook.page.CreatePagePost",
+            "label": "CreatePagePost",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "content": {
+                    "ac97e6f1-98e1-4ec5-89b1-343abf1c5799": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "content": {
+                        "ac97e6f1-98e1-4ec5-89b1-343abf1c5799": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "pageId": {},
+                                    "message": {},
+                                    "images": {
+                                        "bd9af5e1-6867-44c5-9ec4-2de1e8fc2a3b": {
+                                            "variable": "$.ac97e6f1-98e1-4ec5-89b1-343abf1c5799.out.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "pageId": "1002114906324065",
+                                    "message": "E2E Photo Post",
+                                    "images": {
+                                        "ADD": [
+                                            { "fileId": "{{{bd9af5e1-6867-44c5-9ec4-2de1e8fc2a3b}}}" },
+                                            { "url": "https://www.gstatic.com/webp/gallery/2.jpg" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "02e8e6b7-598e-4088-9509-f0c16a90b4f8": {
+            "type": "appmixer.facebook.page.FindPagePosts",
+            "label": "FindPagePosts",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "1ba3d811-413d-42ad-b20a-11884329e7da": ["newPost"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1ba3d811-413d-42ad-b20a-11884329e7da": {
+                            "newPost": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "pageId": {
+                                        "40c603b1-1dd6-40a9-a523-15a66e3cbe37": {
+                                            "variable": "$.1ba3d811-413d-42ad-b20a-11884329e7da.newPost.pageId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "maxResults": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "pageId": "{{{40c603b1-1dd6-40a9-a523-15a66e3cbe37}}}",
+                                    "maxResults": 1,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "34069616-e347-40dd-9cfd-1f6afd2fb31b": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert photo post",
+            "x": 896,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "02e8e6b7-598e-4088-9509-f0c16a90b4f8": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "02e8e6b7-598e-4088-9509-f0c16a90b4f8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "e3074f01-fa92-4add-a348-31db2fc24032": {
+                                            "variable": "$.02e8e6b7-598e-4088-9509-f0c16a90b4f8.out.id",
+                                            "functions": []
+                                        },
+                                        "e6864a91-8c17-4ab0-907a-dd24a775b3c7": {
+                                            "variable": "$.1ba3d811-413d-42ad-b20a-11884329e7da.newPost.id",
+                                            "functions": []
+                                        },
+                                        "e06542e4-b502-4d65-96e9-fe9d281290b0": {
+                                            "variable": "$.1ba3d811-413d-42ad-b20a-11884329e7da.newPost.photoIds",
+                                            "functions": [{ "name": "g_jsonPath", "params": [{ "value": "$[1]" }] }]
+                                        },
+                                        "3ce0efb6-4e8f-4e46-ab29-d6c2530c2dd2": {
+                                            "variable": "$.02e8e6b7-598e-4088-9509-f0c16a90b4f8.out.attachments",
+                                            "functions": [{ "name": "g_jsonPath", "params": [{ "value": "$[0].type" }] }]
+                                        },
+                                        "e4318e51-13e1-44dd-9f7e-7c04e8595aba": {
+                                            "variable": "$.02e8e6b7-598e-4088-9509-f0c16a90b4f8.out.attachments",
+                                            "functions": [{ "name": "g_jsonPath", "params": [{ "value": "$[0].subattachments[1].imageUrl" }] }]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{e3074f01-fa92-4add-a348-31db2fc24032}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{e6864a91-8c17-4ab0-907a-dd24a775b3c7}}}"
+                                            },
+                                            {
+                                                "field": "{{{e06542e4-b502-4d65-96e9-fe9d281290b0}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{3ce0efb6-4e8f-4e46-ab29-d6c2530c2dd2}}}",
+                                                "assertion": "equal",
+                                                "expected": "album"
+                                            },
+                                            {
+                                                "field": "{{{e4318e51-13e1-44dd-9f7e-7c04e8595aba}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https://"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "dbf6ec5d-15f4-4712-bd99-757f9f0457c1": {
+            "type": "appmixer.utils.test.AfterAll",
+            "label": "AfterAll",
+            "x": 1104,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "34069616-e347-40dd-9cfd-1f6afd2fb31b": ["out"]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "3ee4c9df-3137-488e-9b6f-361f3516af60": {
+            "type": "appmixer.facebook.page.MakeApiCall",
+            "label": "Get page token",
+            "x": 1312,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "dbf6ec5d-15f4-4712-bd99-757f9f0457c1": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "dbf6ec5d-15f4-4712-bd99-757f9f0457c1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/1002114906324065?fields=access_token",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "5162f84b-ae84-4166-ad14-ea11a49fc56b": {
+            "type": "appmixer.facebook.page.MakeApiCall",
+            "label": "Delete post",
+            "x": 1520,
+            "y": 784,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3ee4c9df-3137-488e-9b6f-361f3516af60": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3ee4c9df-3137-488e-9b6f-361f3516af60": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "4d42aa7d-b35a-4080-94d8-0c064a2d7bce": {
+                                            "variable": "$.1ba3d811-413d-42ad-b20a-11884329e7da.newPost.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "parameters": {
+                                        "7894c824-0eb0-4095-a238-c70251ed0f32": {
+                                            "variable": "$.3ee4c9df-3137-488e-9b6f-361f3516af60.out.body",
+                                            "functions": [{ "name": "g_jsonPath", "params": [{ "value": "$.access_token" }] }]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/{{{4d42aa7d-b35a-4080-94d8-0c064a2d7bce}}}",
+                                    "method": "DELETE",
+                                    "parameters": "{\"access_token\":\"{{{7894c824-0eb0-4095-a238-c70251ed0f32}}}\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "72a40fc5-f3c8-439b-9af5-a9a0fd48ff1c": {
+            "type": "appmixer.utils.files.RemoveFile",
+            "label": "RemoveFile",
+            "x": 1728,
+            "y": 912,
+            "version": "1.1.0",
+            "source": {
+                "in": {
+                    "5162f84b-ae84-4166-ad14-ea11a49fc56b": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5162f84b-ae84-4166-ad14-ea11a49fc56b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "5658c290-95dd-49b0-bd54-035d589482a5": {
+                                            "variable": "$.ac97e6f1-98e1-4ec5-89b1-343abf1c5799.out.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "fileId": "{{{5658c290-95dd-49b0-bd54-035d589482a5}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "c247468e-06bb-4a06-a4ee-4a60421a4ded": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "label": "ProcessE2EResults",
+            "x": 1936,
+            "y": 1040,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "72a40fc5-f3c8-439b-9af5-a9a0fd48ff1c": ["deleted"]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "72a40fc5-f3c8-439b-9af5-a9a0fd48ff1c": {
+                            "deleted": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "668d63d3-2c05-4bf9-8c95-8c5c9a02d687": {
+                                            "variable": "$.dbf6ec5d-15f4-4712-bd99-757f9f0457c1.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Facebook - photo post",
+                                    "result": "{{{668d63d3-2c05-4bf9-8c95-8c5c9a02d687}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        }
+    }
+}

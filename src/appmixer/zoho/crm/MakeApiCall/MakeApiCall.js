@@ -1,13 +1,27 @@
 'use strict';
+const { resolveApiDomain } = require('../../endpoints');
 
-function kvToObj(arr) {
-    if (!arr || !Array.isArray(arr)) return {};
+function kvToObj(value) {
+    // The Designer's key-value field sends its rows as a JSON object string
+    // ('{"Accept":"application/json"}'); a plain object and an array of
+    // {key, value} rows are accepted too.
+    let input = value;
+    if (typeof input === 'string') {
+        if (!input.trim()) return {};
+        try {
+            input = JSON.parse(input);
+        } catch (e) {
+            throw new Error('Request Headers and Query Parameters must be a JSON object of key-value pairs.');
+        }
+    }
+    if (!input || typeof input !== 'object') return {};
+    const entries = Array.isArray(input)
+        ? input.filter(row => row && typeof row === 'object').map(row => [row.key, row.value])
+        : Object.entries(input);
     const out = {};
-    for (const row of arr) {
-        if (!row || typeof row !== 'object') continue;
-        const key = row.key;
+    for (const [key, val] of entries) {
         if (typeof key !== 'string' || key.length === 0) continue;
-        out[key] = row.value;
+        out[key] = val;
     }
     return out;
 }
@@ -27,10 +41,8 @@ module.exports = {
         const extraHeaders = kvToObj(headersKV);
         const queryParams = kvToObj(parametersKV);
 
-        const TLDS = { 'in': 'in', 'us': 'com', 'au': 'com.au', 'eu': 'eu', 'cn': 'com.cn' };
-        const region = (context.profileInfo && context.profileInfo.region || 'us').toLowerCase();
-        const tld = TLDS[region] || TLDS['us'];
-        const baseUrl = `https://www.zohoapis.${tld}`;
+        const profileInfo = context.profileInfo || {};
+        const baseUrl = resolveApiDomain({ apiDomain: profileInfo.apiDomain, region: profileInfo.region || 'us' });
         const targetUrl = url.startsWith('http://') || url.startsWith('https://')
             ? url
             : `${baseUrl}${url.startsWith('/') ? url : '/' + url}`;
