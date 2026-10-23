@@ -47,6 +47,14 @@ module.exports = {
             params: { sort: 'created', order: 'desc' }
         });
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
+
+        // While degraded, GitHub search times out with a partial page (incomplete_results) or answers
+        // with no items. Saved as the state, such a page makes the next regular tick report every
+        // issue on the page as new, so keep the previous state and wait for a complete answer.
+        if (res.data.incomplete_results || (known?.size && !res.data.items.length)) {
+            return;
+        }
+
         let actual = new Set();
         let diff = new Set();
 
