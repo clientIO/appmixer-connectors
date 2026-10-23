@@ -1,7 +1,7 @@
 'use strict';
 
 // ─── MCP server communication ─────────────────────────────────────────────────
-// Copy of ai/mcptools/mcp.js, used by tool.js for MCP servers wired to the "tool" port.
+// Copy of ai/mcptools/mcp.js, used by tool.js for MCP servers wired to the "tools" port.
 
 async function mcpListTools(context, componentId) {
 

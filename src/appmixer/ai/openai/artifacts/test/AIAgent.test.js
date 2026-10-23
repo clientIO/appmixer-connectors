@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const sinon = require('sinon');
+const shortuuid = require('short-uuid');
 const { createMockContext } = require('../../../../../../test/utils');
 
 const AIAgent = require('../../AIAgent/AIAgent');
@@ -368,17 +369,17 @@ describe('AIAgent - tool port', () => {
                 'rows-1': {
                     type: 'appmixer.google.spreadsheets.GetRows',
                     label: 'Employee contacts',
-                    source: { in: { [AGENT_ID]: ['tool'] } },
+                    source: { in: { [AGENT_ID]: ['tools'] } },
                     config: {
                         transform: {
                             in: {
                                 [AGENT_ID]: {
-                                    tool: {
+                                    tools: {
                                         modifiers: {
                                             sheetId: {},
                                             filter: {
                                                 'var-1': {
-                                                    variable: `$.${AGENT_ID}.tool.modelDefinedParameter`,
+                                                    variable: `$.${AGENT_ID}.tools.modelDefinedParameter`,
                                                     functions: []
                                                 }
                                             }
@@ -464,7 +465,7 @@ describe('AIAgent - tool port', () => {
         manifest.inPorts[0].schema.properties.filter = { type: 'array' };
         manifest.inPorts[0].schema.properties.sheetId = { type: 'string', enum: ['sheet-1', 'sheet-2'] };
         context.callAppmixer = sinon.stub().resolves([manifest]);
-        const transform = context.flowDescriptor['rows-1'].config.transform.in[AGENT_ID].tool;
+        const transform = context.flowDescriptor['rows-1'].config.transform.in[AGENT_ID].tools;
         transform.modifiers.sheetId = transform.modifiers.filter;
 
         const [tool] = await AIAgent.getAllToolsDefinition(context);
@@ -491,7 +492,7 @@ describe('AIAgent - tool port', () => {
 
     it('should resolve a variable inside an object value', async () => {
 
-        const transform = context.flowDescriptor['rows-1'].config.transform.in[AGENT_ID].tool;
+        const transform = context.flowDescriptor['rows-1'].config.transform.in[AGENT_ID].tools;
         transform.modifiers.sheetId = { 'var-2': { variable: '$.trigger-1.out.sheet', functions: [] } };
         transform.lambda.sheetId = { AND: [{ field: 'id', value: '{{{var-2}}}' }, { field: 'kind', value: 'sheet' }] };
         context.messages.in.scope = { 'trigger-1': { out: { sheet: 'sheet-9' } } };
@@ -511,7 +512,7 @@ describe('AIAgent - tool port', () => {
 
     it('should tell the model when a variable refers to an output the engine did not pass on', async () => {
 
-        const transform = context.flowDescriptor['rows-1'].config.transform.in[AGENT_ID].tool;
+        const transform = context.flowDescriptor['rows-1'].config.transform.in[AGENT_ID].tools;
         transform.modifiers.sheetId = { 'var-2': { variable: '$.trigger-1.out.sheet', functions: [] } };
         transform.lambda.sheetId = '{{{var-2}}}';
         // What the engine leaves in the scope of an output over its size limit.
@@ -539,27 +540,50 @@ describe('AIAgent - tool port', () => {
 
         context.flowDescriptor['mcp-1'] = {
             type: 'appmixer.mcpservers.github.MCPServer',
-            source: { in: { [AGENT_ID]: ['tool'] } }
+            source: { in: { [AGENT_ID]: ['tools'] } }
         };
         context.httpRequest = sinon.stub().rejects(new Error('ECONNREFUSED'));
 
         await assert.rejects(AIAgent.getAllToolsDefinition(context), /MCP server mcp-1 did not list its tools/);
     });
 
-    it('should refuse a ToolStart connected to the tool port', async () => {
+    it('should call a ToolStart next to a component through its webhook route, never through the port', async () => {
 
-        context.flowDescriptor['rows-1'].type = 'appmixer.ai.agenttools.ToolStart';
+        context.flowDescriptor['ts-1'] = {
+            type: 'appmixer.ai.agenttools.ToolStart',
+            label: 'Weather',
+            source: { in: { [AGENT_ID]: ['tools'] } },
+            config: { properties: { description: 'Weather in a city.' } }
+        };
+        context.flow = {
+            stateGet: sinon.stub().resolves({ output: 'sunny' }),
+            stateUnset: sinon.stub().resolves()
+        };
+        const tools = await AIAgent.getAllToolsDefinition(context);
+        const getRows = context.callAppmixer;
+        context.callAppmixer = sinon.stub().callsFake(async (options) => (
+            options.endPoint.startsWith('/flows/') ? { message: 'Enqueued.' } : getRows(options)
+        ));
 
-        await assert.rejects(AIAgent.getAllToolsDefinition(context), /'ToolStart' chain belongs to the 'tools' port/);
+        const outputs = await AIAgent.callTools(context, [
+            { id: 'call-1', function: { name: 'ts-1_Weather', arguments: '{}' } }
+        ]);
+
+        assert.deepStrictEqual(tools.map((tool) => tool.function.name).sort(), [TOOL_NAME, 'ts-1_Weather'].sort());
+        assert.deepStrictEqual(outputs, [{ tool_call_id: 'call-1', output: 'sunny' }]);
+        const trigger = context.callAppmixer.getCalls().find((call) => call.args[0].endPoint.startsWith('/flows/'));
+        assert(trigger, 'the ToolStart was called through its webhook route');
+        assert(context.sendJson.notCalled, 'sendJson would run the component tool too');
     });
 });
 
-describe('AIAgent - tools and mcp ports next to the tool port', () => {
+describe('AIAgent - ToolStart chains and MCP servers on the tools and mcp ports', () => {
 
     const AGENT_ID = '11111111-1111-4111-8111-111111111111';
     const TOOL_START_ID = '22222222-2222-4222-8222-222222222222';
     const MCP_ID = '44444444-4444-4444-8444-444444444444';
-    const TOOL_START_NAME = `${TOOL_START_ID}_Get_weather`;
+    // Tool names carry the short form of the component ID.
+    const TOOL_START_NAME = `${shortuuid().fromUUID(TOOL_START_ID)}_Get_weather`;
     // The MCP tools carry the short form of the server's component ID.
     const MCP_TOOL_NAME = '9qW3E4QPKWVfwFkC8mcPdq_list_issues';
 
@@ -631,13 +655,13 @@ describe('AIAgent - tools and mcp ports next to the tool port', () => {
             ]);
             assert.deepStrictEqual(tools[0].function.parameters, {
                 type: 'object',
-                properties: { city: { type: 'string', description: 'City' } }
+                properties: { city: { type: 'string', description: 'City' } },
+                required: ['city']
             });
-            assert(context.callAppmixer.notCalled, 'nothing on these ports is a tool of the tool port');
-            assert.deepStrictEqual(await context.stateGet('componentTools'), []);
+            assert(context.callAppmixer.notCalled, 'a ToolStart needs no manifest');
         });
 
-        it(`should run a ToolStart chain through the flow, with the ports stored as ${shape}`, async () => {
+        it(`should run a ToolStart chain through the port as before, with the ports stored as ${shape}`, async () => {
 
             createContext(port);
             sandbox.stub(AIAgent, 'publishChatProgressEvent').resolves();
@@ -649,12 +673,12 @@ describe('AIAgent - tools and mcp ports next to the tool port', () => {
             ]);
 
             assert.deepStrictEqual(context.sendJson.firstCall.args, [{
-                toolCalls: [{ componentId: TOOL_START_ID, args: { city: 'Brno' }, id: 'call-1' }],
+                toolCalls: [{ componentId: TOOL_START_ID, args: { city: 'Brno' }, id: 'call-1:corr-1' }],
                 prompt: 'What is the weather?'
             }, 'tools']);
             assert.deepStrictEqual(outputs, [
-                { tool_call_id: 'call-2', output: JSON.stringify({ issues: [] }, null, 2) },
-                { tool_call_id: 'call-1', output: 'sunny' }
+                { tool_call_id: 'call-1', output: 'sunny' },
+                { tool_call_id: 'call-2', output: JSON.stringify({ issues: [] }, null, 2) }
             ]);
             assert(context.callAppmixer.notCalled, 'no static call is expected');
         });
@@ -673,7 +697,7 @@ describe('AIAgent - tool port with a chain of components', () => {
     let transformCalls;
     let embeddingsOutput;
 
-    const toolTransform = (modifiers, lambda) => ({ in: { [AGENT_ID]: { tool: { modifiers, lambda } } } });
+    const toolTransform = (modifiers, lambda) => ({ in: { [AGENT_ID]: { tools: { modifiers, lambda } } } });
 
     // What the engine's POST /modifiers/transform does, as far as these tests need it.
     const engineTransform = ({ template, modifiers, data }) => {
@@ -713,12 +737,12 @@ describe('AIAgent - tool port with a chain of components', () => {
                 'emb-1': {
                     type: 'appmixer.ai.openai.GenerateEmbeddings',
                     label: 'Search policies',
-                    source: { in: { [AGENT_ID]: ['tool'] } },
+                    source: { in: { [AGENT_ID]: ['tools'] } },
                     config: {
                         transform: toolTransform(
                             {
                                 model: {},
-                                text: { 'var-1': { variable: `$.${AGENT_ID}.tool.modelDefinedParameter`, functions: [] } }
+                                text: { 'var-1': { variable: `$.${AGENT_ID}.tools.modelDefinedParameter`, functions: [] } }
                             },
                             { model: 'text-embedding-ada-002', text: '{{{var-1}}}' }
                         )
@@ -861,7 +885,7 @@ describe('AIAgent - tool port with a chain of components', () => {
 
     it('should fill a field of the first component from a variable in front of the agent', async () => {
 
-        const transform = context.flowDescriptor['emb-1'].config.transform.in[AGENT_ID].tool;
+        const transform = context.flowDescriptor['emb-1'].config.transform.in[AGENT_ID].tools;
         transform.modifiers.text = { 'var-1': { variable: '$.trigger-1.out.channel', functions: [] } };
 
         const tools = await AIAgent.getAllToolsDefinition(context);
@@ -940,13 +964,13 @@ describe('AIAgent - tool port with a chain of components', () => {
 
         context.flowDescriptor['log-1'] = { type: 'appmixer.utils.controls.SetVariable', source: { in: { 'emb-1': ['out'] } } };
 
-        await assert.rejects(AIAgent.getAllToolsDefinition(context), /has to be\s+a straight line of components/);
+        await assert.rejects(AIAgent.getAllToolsDefinition(context), /connect a .Tool Start. to the\s+.tools. port/);
     });
 
     it('should turn a model defined field of a later step into a tool parameter', async () => {
 
         const transform = context.flowDescriptor['query-1'].config.transform.in['emb-1'].out;
-        transform.modifiers.namespace = { 'var-3': { variable: `$.${AGENT_ID}.tool.modelDefinedParameter`, functions: [] } };
+        transform.modifiers.namespace = { 'var-3': { variable: `$.${AGENT_ID}.tools.modelDefinedParameter`, functions: [] } };
 
         const tools = await AIAgent.getAllToolsDefinition(context);
         await AIAgent.callTools(context, [{
