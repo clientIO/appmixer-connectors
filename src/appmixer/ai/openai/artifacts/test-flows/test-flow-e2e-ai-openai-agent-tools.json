@@ -13,7 +13,7 @@
         "0a5e1002-2222-4222-8222-222222222202": {
             "config": {
                 "properties": {
-                    "instructions": "You are a test agent. When asked about the service status, first call the status tool, then answer with the single word DONE.",
+                    "instructions": "You are a test agent. When asked about the service status, first call the status tool. Then look the secret code up with the secret code tool. Answer with the secret code followed by the word DONE and nothing else.",
                     "model": "gpt-4o-mini"
                 },
                 "transform": {
@@ -21,7 +21,7 @@
                         "0a5e1001-1111-4111-8111-111111111101": {
                             "out": {
                                 "lambda": {
-                                    "prompt": "What is the current service status? Use the status tool, then answer DONE."
+                                    "prompt": "What is the current service status and what is the secret code?"
                                 },
                                 "modifiers": {
                                     "prompt": {}
@@ -107,8 +107,14 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{a1000000-aaaa-4aaa-8aaa-a000000000a1}}}"
+                                                "assertion": "regex",
+                                                "field": "{{{a1000000-aaaa-4aaa-8aaa-a000000000a1}}}",
+                                                "regex": "TOOLS-PORT-3187"
+                                            },
+                                            {
+                                                "assertion": "regex",
+                                                "field": "{{{a1000000-aaaa-4aaa-8aaa-a000000000a1}}}",
+                                                "regex": "DONE"
                                             }
                                         ]
                                     }
@@ -205,6 +211,61 @@
             "type": "appmixer.utils.test.ProcessE2EResults",
             "x": 976,
             "y": 448
+        },
+        "0a5e1008-8888-4888-8888-888888888808": {
+            "config": {
+                "properties": {
+                    "description": "Returns the secret code."
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Secret code",
+            "source": {
+                "in": {
+                    "0a5e1002-2222-4222-8222-222222222202": [
+                        "tools"
+                    ]
+                }
+            },
+            "type": "appmixer.ai.agenttools.ToolStart",
+            "x": 400,
+            "y": 64
+        },
+        "0a5e1009-9999-4999-8999-999999999909": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "0a5e1008-8888-4888-8888-888888888808": {
+                            "out": {
+                                "lambda": {
+                                    "output": "TOOLS-PORT-3187"
+                                },
+                                "modifiers": {
+                                    "output": {}
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0a5e1008-8888-4888-8888-888888888808": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.ai.agenttools.ToolOutput",
+            "x": 592,
+            "y": 64
         }
     },
     "name": "E2E Ai/openai - AI Agent Tool Roundtrip",

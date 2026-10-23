@@ -1,7 +1,7 @@
 {
     "name": "appmixer.ai.openai",
     "engine": ">=6.4",
-    "version": "2.0.2",
+    "version": "2.1.0",
     "changelog": {
         "1.0.0": [
             "First version."
@@ -83,6 +83,11 @@
         ],
         "2.0.2": [
             "MakeApiCall: Request Headers and Query Parameters set in the Designer are now sent. They were silently dropped: the key-value field stores its rows as a JSON object string, which the component did not parse."
+        ],
+        "2.1.0": [
+            "AI Agent: any component connected to the 'tools' port is a tool the agent calls directly, with no 'Tool Start' and 'Tool Output' around it; fields filled with the new 'Model Defined Parameter' variable become the tool parameters, a field filled with 'Prompt' gets the prompt. MCP servers can be connected to the same port. 'Tool Start' chains keep working: on a port with 'Tool Start' chains only they are called as before, next to other tools a 'Tool Start' is called through its webhook URL so the other tools do not run. The 'mcp' port keeps working.",
+            "AI Agent: a tool on the 'tools' port can be a chain of components, for example Generate Embeddings followed by a vector database query. The components connected behind the first one run as further steps of the same tool, each fed from the previous one the way the flow maps it, and the output of the last step is returned to the agent. When a step returns several items (Find Emails with one email at a time), the next step runs for each of them, up to 50 by default (AI_AGENT_TOOL_MAX_ITEMS).",
+            "AI Agent: two calls of the same 'Tool Start' in one turn no longer overwrite each other's output (they run one after the other; calls of different tools still run at the same time). A 'Tool Output' that comes after its call has timed out is removed from the flow state with the next message of the agent. The tool names the model sees for 'Tool Start' chains are shorter (the component ID is shortened)."
         ]
     }
 }
